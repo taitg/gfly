@@ -1,0 +1,6 @@
+#!/bin/bash
+# Run the program:
+sudo java -jar Gfly.jar
+
+# Old run script for *.class files:
+#sudo java -classpath .:classes:/opt/pi4j/lib/'*':./lib/* Gfly
