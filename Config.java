@@ -70,40 +70,19 @@ public class Config {
 	// pin 8 is for sensor SDA (I2C)
 	// pin 9 is for sensor SCL (I2C)
 	// pins 15 and 16 are UART
-	public static int titrationButtonPin = 27;
-	public static int endpointButtonPin = 28;
-	public static int resetButtonPin = 29;
 
-	public static int rgbwRedPin = 23;
-	public static int rgbwGreenPin = 22;
-	public static int rgbwBluePin = 21;
-	public static int rgbwWhitePin = 30;
-	public static int[] rgbwPins; // set when program is run
+	public static int  piezoPin = 14;
 
-	public static int rgbRedPin = 14;
-	public static int rgbGreenPin = 13;
-	public static int rgbBluePin = 12;
-	public static int[] rgbPins; // set when program is run
+	// public static int rgbwRedPin = 23;
+	// public static int rgbwGreenPin = 22;
+	// public static int rgbwBluePin = 21;
+	// public static int rgbwWhitePin = 30;
+	// public static int[] rgbwPins; // set when program is run
 
-	public static int gpsLedPin = 2;
-	public static int gpsSwitchPin = 3;
-
-	public static int pumpPin = 0;
-	public static int mixerPin = 7;
-
-	public static int limit1Pin = 25;
-	public static int stepper1Pin1 = 1;
-	public static int stepper1Pin2 = 4;
-	public static int stepper1Pin3 = 5;
-	public static int stepper1Pin4 = 6;
-	public static int[] stepper1Pins; // set when program is run
-
-	public static int limit2Pin = 24;
-	public static int stepper2Pin1 = 10;
-	public static int stepper2Pin2 = 11;
-	public static int stepper2Pin3 = 31;
-	public static int stepper2Pin4 = 26;
-	public static int[] stepper2Pins; // set when program is run
+	// public static int rgbRedPin = 14;
+	// public static int rgbGreenPin = 13;
+	// public static int rgbBluePin = 12;
+	// public static int[] rgbPins; // set when program is run
 
 	// I2C address for the sensor
 	// NOT SETTABLE IN CONFIG FILE
