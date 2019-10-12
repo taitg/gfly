@@ -9,6 +9,7 @@ public class GPSData {
 	private String date; // date in YYYY-MM-DD
 	private double latitude; // latitude as a decimal
 	private double longitude; // longitude as a decimal
+	private double altitude;
 	private double speed; // speed as a decimal
 	private double trackingAngle; // tracking angle as a decimal
 	private boolean switchPressed; // flag for whether the GPS switch was pressed
@@ -23,13 +24,21 @@ public class GPSData {
 		String[] parts = data.split(",");
 		try {
 			// process the information from the raw serial data string
-			valid = parts[2].equals("A");
-			time = processTime(parts[1]);
-			date = processDate(parts[9]);
-			latitude = processLatitude(parts[3], parts[4]);
-			longitude = processLongitude(parts[5], parts[6]);
-			speed = Double.parseDouble(parts[7]);
-			trackingAngle = Double.parseDouble(parts[8]);
+			if (data.contains("GPRMC")) {
+				valid = parts[2].equals("A");
+				time = processTime(parts[1]);
+				date = processDate(parts[9]);
+				latitude = processLatitude(parts[3], parts[4]);
+				longitude = processLongitude(parts[5], parts[6]);
+				speed = Double.parseDouble(parts[7]);
+				trackingAngle = Double.parseDouble(parts[8]);
+			} else if (data.contains("GPGGA")) {
+				valid = Integer.parseInt(parts[6]) > 0;
+				time = processTime(parts[1]);
+				latitude = processLatitude(parts[2], parts[3]);
+				longitude = processLongitude(parts[4], parts[5]);
+				altitude = Double.parseDouble(parts[9]);
+			}
 			this.switchPressed = switchPressed;
 		}
 		catch (Exception e) {
@@ -49,6 +58,7 @@ public class GPSData {
 		valid = true;
 		latitude = -1000;
 		longitude = -1000;
+		altitude = -1000;
 		speed = -1000;
 		trackingAngle = -1000;
 	}
@@ -95,6 +105,10 @@ public class GPSData {
 	 */
 	public double getLongitude() { return longitude; }
 	
+	public double getAltitude() { return altitude; }
+
+	public void setAltitude(double altitude) { this.altitude = altitude; };
+	
 	/**
 	 * Returns speed
 	 * 
@@ -124,6 +138,7 @@ public class GPSData {
 		System.out.printf("Valid: %s\n", valid);
 		System.out.printf("Lat.:  %f\n", latitude);
 		System.out.printf("Long.: %f\n", longitude);
+		System.out.printf("Alt.: %f\n", altitude);
 		System.out.printf("Speed: %f at angle %f\n\n", speed, trackingAngle);
 	}
 	

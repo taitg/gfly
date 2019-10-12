@@ -110,6 +110,26 @@ public class GPS {
 		}
 		return null;
 	}
+
+	public GPSData getLastComplete() {
+		if (dataList.size() < 1) return null;
+		GPSData result = dataList.get(0);
+		for (int i = dataList.size() - 1; i >= 0; i--) {
+			GPSData item = dataList.get(i);
+			if (item != null && item.isValid() && item.getDate() != null) {
+				result = item;
+				break;
+			}
+		}
+		for (int i = dataList.size() - 1; i >= 0; i--) {
+			GPSData item = dataList.get(i);
+			if (item != null && item.isValid() && item.getAltitude() > 0) {
+				result.setAltitude(item.getAltitude());
+				break;
+			}
+		}
+		return result;
+	}
 		
 	/**
 	 * Get last GPS data
@@ -191,6 +211,17 @@ public class GPS {
 		buffer += serialData;
 		if (buffer.contains("$GPRMC")) {
 			buffer = buffer.substring(buffer.indexOf("$GPRMC"));
+			
+			if (buffer.split(",").length > 10) {
+				dataList.add(new GPSData(buffer, pressed));
+				if (dataList.size() > 15) dataList.remove(0);
+				updateLED();
+				buffer = "";
+			}
+		}
+		else
+		if (buffer.contains("$GPGGA")) {
+			buffer = buffer.substring(buffer.indexOf("$GPGGA"));
 			
 			if (buffer.split(",").length > 10) {
 				dataList.add(new GPSData(buffer, pressed));
