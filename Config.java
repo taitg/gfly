@@ -70,26 +70,10 @@ public class Config {
 	// pin 8 is for sensor SDA (I2C)
 	// pin 9 is for sensor SCL (I2C)
 	// pins 15 and 16 are UART
-	
+
 	public static int gpsLedPin = 2;
 	public static int gpsSwitchPin = 3;
-
 	public static int piezoPin = 1;
-
-	// public static int rgbwRedPin = 23;
-	// public static int rgbwGreenPin = 22;
-	// public static int rgbwBluePin = 21;
-	// public static int rgbwWhitePin = 30;
-	// public static int[] rgbwPins; // set when program is run
-
-	// public static int rgbRedPin = 14;
-	// public static int rgbGreenPin = 13;
-	// public static int rgbBluePin = 12;
-	// public static int[] rgbPins; // set when program is run
-
-	// I2C address for the sensor
-	// NOT SETTABLE IN CONFIG FILE
-	public static final int sensorAddress = 0x29;
 
 	/**
 	 * Load config values from file
@@ -154,54 +138,10 @@ public class Config {
 			else if (a.equals("ledExtraFlashColour"))
 				ledExtraFlashColour = Integer.parseInt(b);
 
-			// else if (a.equals("titrationButtonPin"))
-			// 	titrationButtonPin = Integer.parseInt(b);
-			// else if (a.equals("endpointButtonPin"))
-			// 	endpointButtonPin = Integer.parseInt(b);
-			// else if (a.equals("resetButtonPin"))
-			// 	resetButtonPin = Integer.parseInt(b);
-			// else if (a.equals("limit1Pin"))
-			// 	limit1Pin = Integer.parseInt(b);
-			// else if (a.equals("limit2Pin"))
-			// 	limit2Pin = Integer.parseInt(b);
-			// else if (a.equals("rgbwRedPin"))
-			// 	rgbwRedPin = Integer.parseInt(b);
-			// else if (a.equals("rgbwGreenPin"))
-			// 	rgbwGreenPin = Integer.parseInt(b);
-			// else if (a.equals("rgbwBluePin"))
-			// 	rgbwBluePin = Integer.parseInt(b);
-			// else if (a.equals("rgbwWhitePin"))
-			// 	rgbwWhitePin = Integer.parseInt(b);
-			// else if (a.equals("rgbRedPin"))
-			// 	rgbRedPin = Integer.parseInt(b);
-			// else if (a.equals("rgbGreenPin"))
-			// 	rgbGreenPin = Integer.parseInt(b);
-			// else if (a.equals("rgbBluePin"))
-			// 	rgbBluePin = Integer.parseInt(b);
 			else if (a.equals("gpsLedPin"))
 				gpsLedPin = Integer.parseInt(b);
 			else if (a.equals("gpsSwitchPin"))
 				gpsSwitchPin = Integer.parseInt(b);
-			// else if (a.equals("pumpPin"))
-			// 	pumpPin = Integer.parseInt(b);
-			// else if (a.equals("mixerPin"))
-			// 	mixerPin = Integer.parseInt(b);
-			// else if (a.equals("stepper1Pin1"))
-			// 	stepper1Pin1 = Integer.parseInt(b);
-			// else if (a.equals("stepper1Pin2"))
-			// 	stepper1Pin2 = Integer.parseInt(b);
-			// else if (a.equals("stepper1Pin3"))
-			// 	stepper1Pin3 = Integer.parseInt(b);
-			// else if (a.equals("stepper1Pin4"))
-			// 	stepper1Pin4 = Integer.parseInt(b);
-			// else if (a.equals("stepper2Pin1"))
-			// 	stepper2Pin1 = Integer.parseInt(b);
-			// else if (a.equals("stepper2Pin2"))
-			// 	stepper2Pin2 = Integer.parseInt(b);
-			// else if (a.equals("stepper2Pin3"))
-			// 	stepper2Pin3 = Integer.parseInt(b);
-			// else if (a.equals("stepper2Pin4"))
-			// 	stepper2Pin4 = Integer.parseInt(b);
 
 			else
 				throw new Exception();
@@ -229,9 +169,6 @@ public class Config {
 	 * Update pin arrays
 	 */
 	private static void updateArrays() {
-		// rgbwPins = new int[] { rgbwRedPin, rgbwGreenPin, rgbwBluePin, rgbwWhitePin };
-		// rgbPins = new int[] { rgbRedPin, rgbGreenPin, rgbBluePin };
-		// stepper1Pins = new int[] { stepper1Pin1, stepper1Pin2, stepper1Pin3, stepper1Pin4 };
-		// stepper2Pins = new int[] { stepper2Pin1, stepper2Pin2, stepper2Pin3, stepper2Pin4 };
+		
 	}
 }

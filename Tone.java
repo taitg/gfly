@@ -5,8 +5,11 @@ import com.pi4j.wiringpi.SoftTone;
  */
 public class Tone {
 
+	private ToneWorker workerThread;
 	private int pinNum;
 	private String name;
+	private int freq;
+	private boolean playing;
 
 	/**
 	 * Constructor for a tone controller object
@@ -14,6 +17,8 @@ public class Tone {
 	public Tone(int pinNum, String name) {
 		this.pinNum = pinNum;
 		this.name = name;
+		playing = false;
+		freq = 0;
 
 		// initialize wiringPi library
 		com.pi4j.wiringpi.Gpio.wiringPiSetup();
@@ -21,10 +26,32 @@ public class Tone {
 		// set up GPIO pin
 		int success = SoftTone.softToneCreate(pinNum);
 
+		startWorker();
+
 		if (Config.verbose) {
-			if (success == 0) System.out.printf("Tone: %s ready\n", name);
-			else System.out.printf("Tone: %s failed to initialize\n", name);
+			if (success == 0)
+				System.out.printf("Tone: %s ready\n", name);
+			else
+				System.out.printf("Tone: %s failed to initialize\n", name);
 		}
+	}
+
+	/**
+	 * Shut down the controller
+	 */
+	public void shutdown() {
+		if (workerThread != null)
+			workerThread.shutdown();
+	}
+
+	/**
+	 * Start worker thread
+	 */
+	private void startWorker() {
+		workerThread = new ToneWorker();
+		(new Thread(workerThread)).start();
+		if (Config.verbose)
+			System.out.printf("Tone: %s worker ready\n", name);
 	}
 
 	/**
@@ -34,6 +61,7 @@ public class Tone {
 		if (Config.verbose)
 			System.out.printf("Tone: %s off\n", name);
 		SoftTone.softToneStop(pinNum);
+		playing = false;
 	}
 
 	/**
@@ -47,14 +75,61 @@ public class Tone {
 	 * Turn the tone on for a number of milliseconds
 	 */
 	public void play(int freq, int time) {
-		if (Config.verbose)
-			System.out.printf("Tone: %s playing freq %d\n", name, freq);
+		if (freq > 0) {
+			if (Config.verbose)
+				System.out.printf("Tone: %s playing freq %d for %dms\n", name, freq, time);
+			SoftTone.softToneWrite(pinNum, Math.min(Math.max(freq, 110), 3520));
+		} else
+			SoftTone.softToneWrite(pinNum, 0);
 
-		SoftTone.softToneWrite(pinNum, freq);
+		playing = freq > 0;
 
 		if (time > 0) {
 			Util.delay(time);
-			SoftTone.softToneWrite(pinNum, 0);
+			play(0);
+		}
+	}
+
+	public void setFreq(int freq) {
+		this.freq = freq;
+	}
+
+	/**
+	 * Worker thread class
+	 */
+	public class ToneWorker implements Runnable {
+
+		// flag for whether the worker should shut down
+		private boolean shutdown;
+
+		/**
+		 * Constructor
+		 */
+		public ToneWorker() {
+			shutdown = false;
+		}
+
+		/**
+		 * Main worker loop
+		 */
+		@Override
+		public void run() {
+			while (!shutdown) {
+				if (freq > 0 && !playing) {
+					int time = (int) (200000.0 / freq);
+					play(freq, time);
+					freq = 0;
+					Util.delay((int) (time / 2.0));
+				} else
+					Util.delay(200);
+			}
+		}
+
+		/**
+		 * Shut down the worker
+		 */
+		public void shutdown() {
+			shutdown = true;
 		}
 	}
 }

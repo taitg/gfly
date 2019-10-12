@@ -67,6 +67,10 @@ public class DeviceController {
 		try {
 			if (gps != null)
 				gps.shutdown();
+			if (sensor != null)
+				sensor.shutdown();
+			if (tone != null)
+				tone.shutdown();
 			if (gpio != null)
 				gpio.shutdown();
 			if (i2cBus != null)
@@ -81,6 +85,26 @@ public class DeviceController {
 		if (lastValid != null)
 			return lastValid;
 		return gps.getLast();
+	}
+
+	public double[] getPTA() {
+		return sensor.getPTA();
+	}
+
+	public double getAltitudeChange() {
+		return sensor.getAltitudeChange();
+	}
+
+	public void playTone(int freq) {
+		tone.play(freq);
+	}
+
+	public void stopTone() {
+		tone.stop();
+	}
+
+	public void setTone(int freq) {
+		tone.setFreq(freq);
 	}
 
 	public void testComponent(String... args) {
@@ -137,14 +161,14 @@ public class DeviceController {
 						tone.play(0);
 					} else {
 						if (data[2] - alt > 3) {
-							tone.play(880, 250);
-						}
-						else if (data[2] - alt > 2) {
-							tone.play(440 + 220 * (data[2] - alt)), 150);
-						}
-						else tone.play(0);
+							tone.play(880);
+						} else if (data[2] - alt > 2) {
+							tone.play(440 + (int) (440.0 * (data[2] - alt - 2.0)));
+						} else if (data[2] - alt > 1) {
+							tone.play(220 + (int) (220.0 * (data[2] - alt - 1.0)));
+						} else
+							tone.play(0);
 					}
-
 
 					GPSData gps = getGPSData();
 					if (gps != null) {
@@ -152,7 +176,7 @@ public class DeviceController {
 						gps.print();
 					} else
 						System.out.println("NO GPS DATA");
-					Util.delay(1000);
+					Util.delay(50);
 				}
 			}
 
