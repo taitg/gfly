@@ -19,6 +19,7 @@ public class Gfly {
 	private static int state; // current system state
 	private static boolean shutdown; // flag for whether the program should shut down
 	private static boolean acceptingCommands; // flag for whether the program should take commands
+	private static long lastGPSTime;
 
 	private static void handleDevCommand() {
 		if (!acceptingCommands)
@@ -88,11 +89,13 @@ public class Gfly {
 			controller.setTone(0);
 		}
 
-		System.out.printf("Alt diff: %f\n", diff);
 		return diff;
 	}
 
 	private static GPSData handleGPS() {
+		if (System.currentTimeMillis() - lastGPSTime < 1000)
+			return null;
+
 		GPSData gps = controller.getGPSData();
 		String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(), gps.getAltitude(),
 				gps.getSpeed(), gps.getTrackingAngle());
@@ -104,6 +107,8 @@ public class Gfly {
 		} catch (Exception e) {
 			Errors.handleException(e, "cannot write GPS file");
 		}
+		lastGPSTime = System.currentTimeMillis();
+		System.out.print(gpsStr);
 
 		return gps;
 	}
@@ -116,6 +121,8 @@ public class Gfly {
 		double diff = handleAltitudeChange();
 
 		GPSData gps = handleGPS();
+
+		System.out.printf("Alt diff: %f\n", diff);
 
 		Util.delay(Config.mainLoopDelay);
 	}
@@ -148,6 +155,7 @@ public class Gfly {
 			acceptingCommands = true;
 		shutdown = false;
 		state = WAITING;
+		lastGPSTime = 0;
 
 		// run the main program loop
 		while (!shutdown)

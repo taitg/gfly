@@ -142,39 +142,6 @@ public class DeviceController {
 				}
 			}
 
-			// test all data
-			else if (args[1].equals("data")) {
-				double alt = 0;
-				while (true) {
-					double[] data = sensor.getPTA();
-					System.out.printf("\nTemperature: %.02f", data[1]);
-					System.out.printf("\nPressure: %.02f", data[0]);
-					System.out.printf("\nAltitude: %.02f\n", data[2]);
-
-					if (alt == 0) {
-						alt = data[2];
-						tone.play(0);
-					} else {
-						if (data[2] - alt > 3) {
-							tone.play(880);
-						} else if (data[2] - alt > 2) {
-							tone.play(440 + (int) (440.0 * (data[2] - alt - 2.0)));
-						} else if (data[2] - alt > 1) {
-							tone.play(220 + (int) (220.0 * (data[2] - alt - 1.0)));
-						} else
-							tone.play(0);
-					}
-
-					GPSData gps = getGPSData();
-					if (gps != null) {
-						System.out.println("Last GPS data:");
-						gps.print();
-					} else
-						System.out.println("NO GPS DATA");
-					Util.delay(50);
-				}
-			}
-
 			else
 				System.out.println("Invalid test");
 		} catch (Exception e) {

@@ -169,6 +169,6 @@ public class Config {
 	 * Update pin arrays
 	 */
 	private static void updateArrays() {
-		
+
 	}
 }
