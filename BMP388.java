@@ -20,6 +20,8 @@ public class BMP388 {
   private static int[] OSR_SETTINGS = { 1, 2, 4, 8, 16, 32 }; // pressure and temperature oversampling settings
   private static int[] IIR_SETTINGS = { 0, 2, 4, 8, 16, 32, 64, 128 }; // IIR filter coefficients
 
+  public static int samples = 10;
+
   private I2CDevice device;
   private BMP388Worker workerThread;
   private ArrayList<double[]> dataList;
@@ -43,8 +45,9 @@ public class BMP388 {
 
       readCoefficients();
       reset();
-      seaLevelPressure = 1013.25;
+
       lastAltitude = 0;
+      seaLevelPressure = 1013.25;
       dataList = new ArrayList<double[]>();
 
       setPressureOversampling(8);
@@ -78,14 +81,28 @@ public class BMP388 {
       System.out.printf("BMP388: worker ready\n");
   }
 
-  public ArrayList<double[]> getData() {
-    return dataList;
+  public double getAltitudeChange() {
+    if (dataList.size() < samples * 2)
+      return 0;
+    int size = Math.min(dataList.size(), samples);
+    return (getAverageAltitude(size) - getPrevAverageAltitude(size)) / 0.5;
+  }
+
+  public double[] getPTA() {
+    double[] pt = read();
+    double pressure = pt[0] / 100;
+    double[] result = new double[] { pressure, pt[1], calcAltitude(pressure) };
+    return result;
   }
 
   public double[] getLastData() {
     if (dataList.size() < 1)
       return null;
     return dataList.get(dataList.size() - 1);
+  }
+
+  public ArrayList<double[]> getAllData() {
+    return dataList;
   }
 
   public double getPressure() {
@@ -96,41 +113,23 @@ public class BMP388 {
     return read()[1];
   }
 
-  private double calcAltitude(double pressure) {
-    double altitude = 44307.7 * (1 - Math.pow(pressure / seaLevelPressure, 0.190284));
-    if (lastAltitude == 0) {
-      lastAltitude = altitude;
-      return altitude;
-    }
-
-    lastAltitude = lastAltitude + ((altitude - lastAltitude) / 20);
-    return lastAltitude;
-  }
-
   public double getAltitude() {
     return calcAltitude(getPressure());
   }
 
-  public double getAverageAltitude() {
+  public double getAverageAltitude(int size) {
     double sum = 0.0;
-    int size = dataList.size();
-    for (int i = 0; i < size; i++)
+    int min = dataList.size() - size;
+    for (int i = dataList.size() - 1; i >= min; i--)
       sum += dataList.get(i)[2];
     return sum / size;
   }
 
-  public double getAltitudeChange() {
-    int size = dataList.size();
-    if (size < 2)
-      return 0;
-    return dataList.get(size - 1)[2] - getAverageAltitude();
-  }
-
-  public double[] getPTA() {
-    double[] pt = read();
-    double pressure = pt[0] / 100;
-    double[] result = new double[] { pressure, pt[1], calcAltitude(pressure) };
-    return result;
+  public double getPrevAverageAltitude(int size) {
+    double sum = 0.0;
+    for (int i = 0; i < size; i++)
+      sum += dataList.get(i)[2];
+    return sum / size;
   }
 
   public int getPressureOversampling() {
@@ -185,6 +184,11 @@ public class BMP388 {
       byte newSetting = (byte) (index << 1);
       writeByte(REGISTER_CONFIG, newSetting);
     }
+  }
+
+  private double calcAltitude(double pressure) {
+    lastAltitude = 44307.7 * (1 - Math.pow(pressure / seaLevelPressure, 0.190284));
+    return lastAltitude;
   }
 
   private double[] read() {
@@ -292,7 +296,7 @@ public class BMP388 {
       byte[] toWrite = new byte[] { (byte) (register & 0xff), (byte) (value & 0xff) };
       device.write(toWrite);
     } catch (IOException e) {
-      Errors.handleException(e, "Failed to read sensor data");
+      Errors.handleException(e, "Failed to write to sensor");
     }
   }
 
@@ -316,16 +320,15 @@ public class BMP388 {
      */
     @Override
     public void run() {
-      int size = 20;
-
+      int delay = 500 / samples;
       while (!shutdown) {
         double[] sensorData = getPTA();
         dataList.add(sensorData);
 
-        if (dataList.size() > size)
+        if (dataList.size() > samples * 2)
           dataList.remove(0);
 
-        Util.delay(50);
+        Util.delay(delay);
       }
     }
 

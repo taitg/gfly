@@ -65,32 +65,57 @@ public class Gfly {
 		}).start();
 	}
 
-	private static void mainLoop() {
-		// read and handle commands if accepting them
-		if (acceptingCommands)
-			handleDevCommand();
+	private static double handleAltitudeChange() {
+		for (LED led : controller.getLEDs())
+			led.off();
 
 		double diff = controller.getAltitudeChange();
-		if (diff > 0.1)
-			controller.setTone(440 + (int) (1000 * diff));
-		else if (diff < -0.1)
-			controller.setTone(220 + (int) (500 * diff));
-		else
+		if (diff > 0.5) {
+			controller.setTone(440 + (int) (440 * diff));
+			controller.getLEDs().get(2).on();
+			if (diff > 1)
+				controller.getLEDs().get(3).on();
+			if (diff > 1.5)
+				controller.getLEDs().get(4).on();
+			if (diff > 2)
+				controller.getLEDs().get(5).on();
+		} else if (diff < -0.5) {
+			controller.setTone(220 + (int) (110 * diff));
+			controller.getLEDs().get(1).on();
+			if (diff < -1)
+				controller.getLEDs().get(0).on();
+		} else {
 			controller.setTone(0);
+		}
 
-		// System.out.printf("Alt diff: %f\n", diff);
+		System.out.printf("Alt diff: %f\n", diff);
+		return diff;
+	}
 
+	private static GPSData handleGPS() {
 		GPSData gps = controller.getGPSData();
 		String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(), gps.getAltitude(),
 				gps.getSpeed(), gps.getTrackingAngle());
 
 		try {
-			String fileName = "data/gps.txt";
+			String fileName = "gps.txt";
 			Files.write(Paths.get(fileName), gpsStr.getBytes(StandardCharsets.UTF_8),
 					Files.exists(Paths.get(fileName)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
 		} catch (Exception e) {
 			Errors.handleException(e, "cannot write GPS file");
 		}
+
+		return gps;
+	}
+
+	private static void mainLoop() {
+		// read and handle commands if accepting them
+		if (acceptingCommands)
+			handleDevCommand();
+
+		double diff = handleAltitudeChange();
+
+		GPSData gps = handleGPS();
 
 		Util.delay(Config.mainLoopDelay);
 	}

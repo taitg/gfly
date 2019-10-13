@@ -116,7 +116,7 @@ public class Tone {
 		public void run() {
 			while (!shutdown) {
 				if (freq > 0 && !playing) {
-					int time = (int) (200000.0 / freq);
+					int time = 1 + (int) (200000.0 / freq);
 					play(freq, time);
 					freq = 0;
 					Util.delay((int) (time / 2.0));

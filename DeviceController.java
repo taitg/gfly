@@ -15,20 +15,7 @@ public class DeviceController {
 	private GPS gps;
 	private Tone tone;
 	private BMP388 sensor;
-	// private Sensor sensor;
-	// private SimpleMotor mixer;
-	// private SimpleMotor pump;
-	// private LED rgbwLED;
-	// private LED statusLED;
-	// private Switch titrationButton;
-	// private Switch endpointButton;
-	// private Switch resetButton;
-	// private Stepper indicatorStepper;
-	// private Stepper reagentStepper;
-	// private USB usb;
-
-	// last persistent error code that was thrown
-	// private int errorStatus;
+	private ArrayList<LED> leds;
 
 	/**
 	 * Initialize components and I/O
@@ -47,13 +34,17 @@ public class DeviceController {
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
 			tone = new Tone(Config.piezoPin, "piezo");
 			sensor = new BMP388(i2cBus);
-			// usb = new USB(Config.usbPollingInterval);
-
-			// initialize state
-			// setErrorStatus(Errors.NO_ERR);
+			leds = new ArrayList<LED>();
+			leds.add(new LED(gpio, "0", 4));
+			leds.add(new LED(gpio, "1", 5));
+			leds.add(new LED(gpio, "2", 6));
+			leds.add(new LED(gpio, "3", 10));
+			leds.add(new LED(gpio, "4", 11));
+			leds.add(new LED(gpio, "5", 31));
 
 			if (Config.verbose)
 				System.out.println("Done initializing components");
+
 			return true;
 		} catch (Exception e) {
 			Errors.handleException(e, "Failed to initialize components");
@@ -80,6 +71,10 @@ public class DeviceController {
 		}
 	}
 
+	public ArrayList<LED> getLEDs() {
+		return leds;
+	}
+
 	public GPSData getGPSData() {
 		GPSData lastValid = gps.getLastComplete();
 		if (lastValid != null)
@@ -99,12 +94,12 @@ public class DeviceController {
 		tone.play(freq);
 	}
 
-	public void stopTone() {
-		tone.stop();
-	}
-
 	public void setTone(int freq) {
 		tone.setFreq(freq);
+	}
+
+	public void stopTone() {
+		tone.stop();
 	}
 
 	public void testComponent(String... args) {
