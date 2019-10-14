@@ -71,6 +71,7 @@ public class Gfly {
 			led.off();
 
 		double diff = controller.getAltitudeChange();
+
 		if (diff > 0.5) {
 			controller.setTone(440 + (int) (440 * diff));
 			controller.getLEDs().get(2).on();
@@ -93,10 +94,11 @@ public class Gfly {
 	}
 
 	private static GPSData handleGPS() {
-		if (System.currentTimeMillis() - lastGPSTime < 1000)
-			return null;
-
 		GPSData gps = controller.getGPSData();
+
+		if (System.currentTimeMillis() - lastGPSTime < 1000)
+			return gps;
+
 		String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(), gps.getAltitude(),
 				gps.getSpeed(), gps.getTrackingAngle());
 
@@ -118,11 +120,17 @@ public class Gfly {
 		if (acceptingCommands)
 			handleDevCommand();
 
-		double diff = handleAltitudeChange();
-
 		GPSData gps = handleGPS();
+		double diff = handleAltitudeChange();
+		double temp = controller.getPTA()[1];
+		double altitude = controller.getPTA()[2];
+		if (gps != null)
+			altitude = (altitude + gps.getAltitude()) * 0.5;
 
 		System.out.printf("Alt diff: %f\n", diff);
+
+		controller.setLCDLine(0, String.format("%-6.1fm          ", altitude));
+		controller.setLCDLine(1, String.format("%-4.1fC    %+4.1fm/s", temp, diff));
 
 		Util.delay(Config.mainLoopDelay);
 	}

@@ -16,6 +16,7 @@ public class DeviceController {
 	private Tone tone;
 	private BMP388 sensor;
 	private ArrayList<LED> leds;
+	private LCD lcd;
 
 	/**
 	 * Initialize components and I/O
@@ -29,18 +30,20 @@ public class DeviceController {
 			// initialize I/O
 			i2cBus = I2CFactory.getInstance(I2CBus.BUS_1);
 			gpio = GpioFactory.getInstance();
+			com.pi4j.wiringpi.Gpio.wiringPiSetup();
 
 			// initialize component controllers
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
 			tone = new Tone(Config.piezoPin, "piezo");
 			sensor = new BMP388(i2cBus);
 			leds = new ArrayList<LED>();
-			leds.add(new LED(gpio, "0", 4));
-			leds.add(new LED(gpio, "1", 5));
-			leds.add(new LED(gpio, "2", 6));
-			leds.add(new LED(gpio, "3", 10));
-			leds.add(new LED(gpio, "4", 11));
-			leds.add(new LED(gpio, "5", 31));
+			leds.add(new LED(gpio, "0", 21));
+			leds.add(new LED(gpio, "1", 22));
+			leds.add(new LED(gpio, "2", 23));
+			leds.add(new LED(gpio, "3", 24));
+			leds.add(new LED(gpio, "4", 25));
+			leds.add(new LED(gpio, "5", 26));
+			lcd = new LCD();
 
 			if (Config.verbose)
 				System.out.println("Done initializing components");
@@ -83,7 +86,7 @@ public class DeviceController {
 	}
 
 	public double[] getPTA() {
-		return sensor.getPTA();
+		return sensor.getLastData();
 	}
 
 	public double getAltitudeChange() {
@@ -100,6 +103,10 @@ public class DeviceController {
 
 	public void stopTone() {
 		tone.stop();
+	}
+
+	public void setLCDLine(int lineNum, String line) {
+		lcd.writeLine(lineNum, line);
 	}
 
 	public void testComponent(String... args) {

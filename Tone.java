@@ -20,9 +20,6 @@ public class Tone {
 		playing = false;
 		freq = 0;
 
-		// initialize wiringPi library
-		com.pi4j.wiringpi.Gpio.wiringPiSetup();
-
 		// set up GPIO pin
 		int success = SoftTone.softToneCreate(pinNum);
 
