@@ -37,7 +37,7 @@ public class GPSData {
 				time = processTime(parts[1]);
 				latitude = processLatitude(parts[2], parts[3]);
 				longitude = processLongitude(parts[4], parts[5]);
-				altitude = Double.parseDouble(parts[9]);
+				altitude = parts[9] == null || parts[9].equals("") ? 0.0 : Double.parseDouble(parts[9]);
 			}
 			this.switchPressed = switchPressed;
 		}
