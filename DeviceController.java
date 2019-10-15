@@ -33,17 +33,10 @@ public class DeviceController {
 			com.pi4j.wiringpi.Gpio.wiringPiSetup();
 
 			// initialize component controllers
+			lcd = new LCD();
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
 			tone = new Tone(Config.piezoPin, "piezo");
 			sensor = new BMP388(i2cBus);
-			leds = new ArrayList<LED>();
-			leds.add(new LED(gpio, "0", 21));
-			leds.add(new LED(gpio, "1", 22));
-			leds.add(new LED(gpio, "2", 23));
-			leds.add(new LED(gpio, "3", 24));
-			leds.add(new LED(gpio, "4", 25));
-			leds.add(new LED(gpio, "5", 26));
-			lcd = new LCD();
 
 			if (Config.verbose)
 				System.out.println("Done initializing components");
@@ -59,6 +52,8 @@ public class DeviceController {
 		if (Config.verbose)
 			System.out.println("Stopping devices...");
 		try {
+			setLCDLine(0, "    Goodbye     ");
+			setLCDLine(1, "                ");
 			if (gps != null)
 				gps.shutdown();
 			if (sensor != null)
@@ -72,10 +67,6 @@ public class DeviceController {
 		} catch (Exception e) {
 			Errors.handleException(e, "Failed to gracefully stop devices");
 		}
-	}
-
-	public ArrayList<LED> getLEDs() {
-		return leds;
 	}
 
 	public GPSData getGPSData() {

@@ -12,6 +12,7 @@ public class LCD {
   private final static int LCD_BITS = 4;
 
   private int handle;
+  private ArrayList<String> lines;
 
   public LCD() {
     // initialize LCD
@@ -29,26 +30,33 @@ public class LCD {
         0, // LCD data bit 7 (set to 0 if using 4 bit communication)
         0); // LCD data bit 8 (set to 0 if using 4 bit communication)
 
+    lines = new ArrayList<String>();
+    for (int i = 0; i < LCD_ROWS; i++)
+      lines.add("");
+
     // verify initialization
     if (handle == -1) {
-      System.out.println(" ==>> LCD INIT FAILED");
+      System.out.println("LCD: Failed to initialize");
       return;
     }
 
     // clear LCD
+    Lcd.lcdCursor(handle, 0);
+    Lcd.lcdCursorBlink(handle, 0);
     Lcd.lcdClear(handle);
     Util.delay(1000);
 
-    // write line 1 to LCD
     writeLine(0, "      GFLY      ");
-
-    // write line 2 to LCD
-    writeLine(1, "----------------");
+    writeLine(1, "                ");
   }
 
   public void writeLine(int lineNum, String line) {
+    if (lines.get(lineNum).equals(line))
+      return;
+
     Lcd.lcdHome(handle);
     Lcd.lcdPosition(handle, 0, lineNum);
     Lcd.lcdPuts(handle, line);
+    lines.set(lineNum, line);
   }
 }

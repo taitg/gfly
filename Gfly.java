@@ -20,6 +20,7 @@ public class Gfly {
 	private static boolean shutdown; // flag for whether the program should shut down
 	private static boolean acceptingCommands; // flag for whether the program should take commands
 	private static long lastGPSTime;
+	private static long lastLCDUpdateTime;
 
 	private static void handleDevCommand() {
 		if (!acceptingCommands)
@@ -67,25 +68,12 @@ public class Gfly {
 	}
 
 	private static double handleAltitudeChange() {
-		for (LED led : controller.getLEDs())
-			led.off();
-
 		double diff = controller.getAltitudeChange();
 
 		if (diff > 0.5) {
 			controller.setTone(440 + (int) (440 * diff));
-			controller.getLEDs().get(2).on();
-			if (diff > 1)
-				controller.getLEDs().get(3).on();
-			if (diff > 1.5)
-				controller.getLEDs().get(4).on();
-			if (diff > 2)
-				controller.getLEDs().get(5).on();
 		} else if (diff < -0.5) {
 			controller.setTone(220 + (int) (110 * diff));
-			controller.getLEDs().get(1).on();
-			if (diff < -1)
-				controller.getLEDs().get(0).on();
 		} else {
 			controller.setTone(0);
 		}
@@ -122,15 +110,22 @@ public class Gfly {
 
 		GPSData gps = handleGPS();
 		double diff = handleAltitudeChange();
-		double temp = controller.getPTA()[1];
-		double altitude = controller.getPTA()[2];
-		if (gps != null)
-			altitude = (altitude + gps.getAltitude()) * 0.5;
 
-		System.out.printf("Alt diff: %f\n", diff);
+		if (System.currentTimeMillis() - lastLCDUpdateTime > 200) {
+			double[] pta = controller.getPTA();
+			double temp = pta[1];
+			double altitude = pta[2];
+			if (gps != null && gps.getAltitude() > 0)
+				altitude = (altitude + gps.getAltitude()) * 0.5;
 
-		controller.setLCDLine(0, String.format("%-6.1fm          ", altitude));
-		controller.setLCDLine(1, String.format("%-4.1fC    %+4.1fm/s", temp, diff));
+			String line1 = String.format("%-6.1fm   %3.1fkph", altitude, gps.getSpeed() * 1.852);
+			String line2 = String.format("%-4.1fC    %+4.1fm/s", temp, diff);
+			controller.setLCDLine(0, line1);
+			controller.setLCDLine(1, line2);
+			System.out.printf("%s %s\n", line1, line2);
+
+			lastLCDUpdateTime = System.currentTimeMillis();
+		}
 
 		Util.delay(Config.mainLoopDelay);
 	}
@@ -164,6 +159,7 @@ public class Gfly {
 		shutdown = false;
 		state = WAITING;
 		lastGPSTime = 0;
+		lastLCDUpdateTime = 0;
 
 		// run the main program loop
 		while (!shutdown)
