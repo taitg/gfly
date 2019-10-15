@@ -113,10 +113,17 @@ public class Tone {
 		public void run() {
 			while (!shutdown) {
 				if (freq > 0 && !playing) {
-					int time = 1 + (int) (200000.0 / freq);
-					play(freq, time);
+					int pulseTime = 1 + (int) (200000.0 / freq);
+					int offTime = 1 + (int) (pulseTime / 2.0);
+					long pulseEndTime = System.currentTimeMillis() + pulseTime;
+
+					while (System.currentTimeMillis() < pulseEndTime) {
+						play(freq);
+						Util.delay(10);
+					}
 					freq = 0;
-					Util.delay((int) (time / 2.0));
+					play(0);
+					Util.delay(offTime);
 				} else
 					Util.delay(200);
 			}

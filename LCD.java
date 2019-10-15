@@ -1,6 +1,7 @@
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.ArrayList;
 
 import com.pi4j.wiringpi.Gpio;
 import com.pi4j.wiringpi.Lcd;
@@ -13,9 +14,12 @@ public class LCD {
 
   private int handle;
   private ArrayList<String> lines;
+  private boolean shutdown;
 
   public LCD() {
     // initialize LCD
+    shutdown = false;
+
     handle = Lcd.lcdInit(LCD_ROWS, // number of row supported by LCD
         LCD_COLUMNS, // number of columns supported by LCD
         LCD_BITS, // number of bits used to communicate to LCD
@@ -51,12 +55,18 @@ public class LCD {
   }
 
   public void writeLine(int lineNum, String line) {
-    if (lines.get(lineNum).equals(line))
+    if (shutdown || lines.get(lineNum).equals(line))
       return;
 
     Lcd.lcdHome(handle);
     Lcd.lcdPosition(handle, 0, lineNum);
     Lcd.lcdPuts(handle, line);
     lines.set(lineNum, line);
+  }
+
+  public void shutdown() {
+    writeLine(0, "    Goodbye     ");
+    writeLine(1, "                ");
+    shutdown = true;
   }
 }

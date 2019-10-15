@@ -17,6 +17,8 @@ public class DeviceController {
 	private BMP388 sensor;
 	private ArrayList<LED> leds;
 	private LCD lcd;
+	private SimplePin switchOut;
+	private Switch mainSwitch;
 
 	/**
 	 * Initialize components and I/O
@@ -37,6 +39,9 @@ public class DeviceController {
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
 			tone = new Tone(Config.piezoPin, "piezo");
 			sensor = new BMP388(i2cBus);
+			mainSwitch = new Switch(gpio, "main", 24);
+			switchOut = new SimplePin(gpio, "switchOut", 23);
+			switchOut.on();
 
 			if (Config.verbose)
 				System.out.println("Done initializing components");
@@ -52,8 +57,8 @@ public class DeviceController {
 		if (Config.verbose)
 			System.out.println("Stopping devices...");
 		try {
-			setLCDLine(0, "    Goodbye     ");
-			setLCDLine(1, "                ");
+			if (lcd != null)
+				lcd.shutdown();
 			if (gps != null)
 				gps.shutdown();
 			if (sensor != null)
@@ -67,6 +72,10 @@ public class DeviceController {
 		} catch (Exception e) {
 			Errors.handleException(e, "Failed to gracefully stop devices");
 		}
+	}
+
+	public Switch getButton() {
+		return mainSwitch;
 	}
 
 	public GPSData getGPSData() {

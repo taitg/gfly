@@ -84,23 +84,33 @@ public class Gfly {
 	private static GPSData handleGPS() {
 		GPSData gps = controller.getGPSData();
 
-		if (System.currentTimeMillis() - lastGPSTime < 1000)
-			return gps;
+		if (gps != null && System.currentTimeMillis() - lastGPSTime > 1000) {
+			String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(), gps.getAltitude(),
+					gps.getSpeed(), gps.getTrackingAngle());
 
-		String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(), gps.getAltitude(),
-				gps.getSpeed(), gps.getTrackingAngle());
-
-		try {
-			String fileName = "gps.txt";
-			Files.write(Paths.get(fileName), gpsStr.getBytes(StandardCharsets.UTF_8),
-					Files.exists(Paths.get(fileName)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
-		} catch (Exception e) {
-			Errors.handleException(e, "cannot write GPS file");
+			try {
+				String fileName = "gps.txt";
+				Files.write(Paths.get(fileName), gpsStr.getBytes(StandardCharsets.UTF_8),
+						Files.exists(Paths.get(fileName)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+			} catch (Exception e) {
+				Errors.handleException(e, "cannot write GPS file");
+			}
+			System.out.print(gpsStr);
 		}
+
 		lastGPSTime = System.currentTimeMillis();
-		System.out.print(gpsStr);
 
 		return gps;
+	}
+
+	private static void main powerDown() {
+		try {
+			Process p = Runtime.getRuntime().exec("sudo shutdown -h now");
+			p.waitFor();
+		} catch (Exception e) {
+			Errors.handleException(e, "could not shut down!");
+		}
+		break;
 	}
 
 	private static void mainLoop() {
@@ -118,13 +128,33 @@ public class Gfly {
 			if (gps != null && gps.getAltitude() > 0)
 				altitude = (altitude + gps.getAltitude()) * 0.5;
 
-			String line1 = String.format("%-6.1fm   %3.1fkph", altitude, gps.getSpeed() * 1.852);
-			String line2 = String.format("%-4.1fC    %+4.1fm/s", temp, diff);
+			String line1 = String.format("%-6.1fm  %4.1fkph", altitude, gps.getSpeed() * 1.852);
+			String line2 = String.format("%-4.1fC   %+5.1fm/s", temp, diff);
 			controller.setLCDLine(0, line1);
 			controller.setLCDLine(1, line2);
 			System.out.printf("%s %s\n", line1, line2);
 
 			lastLCDUpdateTime = System.currentTimeMillis();
+		}
+
+		if (controller.getButton().isPressed()) {
+			controller.setLCDLine(0, "Shutting down...");
+			long pressTime = System.currentTimeMillis();
+			while (controller.getButton().isPressed()) {
+				long time = System.currentTimeMillis() - pressTime;
+				if (time < 1000)
+					controller.setLCDLine(0, " [            ] ");
+				else if (time < 2000)
+					controller.setLCDLine(0, " [            ] ");
+				else if (time < 3000)
+					controller.setLCDLine(0, " [            ] ");
+				else
+					controller.setLCDLine(0, " [            ] ");
+				if (time > 3200) {
+					powerDown();
+				}
+				Util.delay(200);
+			}
 		}
 
 		Util.delay(Config.mainLoopDelay);

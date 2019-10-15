@@ -113,7 +113,7 @@ public class GPS {
 
 	public GPSData getLastComplete() {
 		if (dataList.size() < 1) return null;
-		GPSData result = dataList.get(0);
+		GPSData result = null;
 		for (int i = dataList.size() - 1; i >= 0; i--) {
 			GPSData item = dataList.get(i);
 			if (item != null && item.isValid() && item.getDate() != null) {
@@ -121,6 +121,7 @@ public class GPS {
 				break;
 			}
 		}
+		if (result == null) return null;
 		for (int i = dataList.size() - 1; i >= 0; i--) {
 			GPSData item = dataList.get(i);
 			if (item != null && item.isValid() && item.getAltitude() > 0) {
@@ -128,6 +129,7 @@ public class GPS {
 				break;
 			}
 		}
+		if (result == null || result.getAltitude() <= 0) return null;
 		return result;
 	}
 		
@@ -159,8 +161,8 @@ public class GPS {
 		boolean gpsActive = button == null || !button.isPressed();
 		boolean timedOut = System.currentTimeMillis() - lastDataTime > Config.gpsDataTimeout;
 
-		if (hasValidData && gpsActive && !timedOut) led.on();
-		else led.off();
+		if (hasValidData && gpsActive && !timedOut) led.off();
+		else led.on();
 		/* disable attempting to reinitialize after timeout
 		if (timedOut) {
 			init();

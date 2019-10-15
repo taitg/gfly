@@ -29,6 +29,7 @@ public class BMP388 {
   private double[] pressureCalib;
   private double seaLevelPressure;
   private double lastAltitude;
+  private long lastDataTime;
   private int pressureOversampling;
   private int temperatureOversampling;
   private int filterCoefficient;
@@ -47,6 +48,7 @@ public class BMP388 {
       reset();
 
       lastAltitude = 0;
+      lastDataTime = 0;
       seaLevelPressure = 1013.25;
       dataList = new ArrayList<double[]>();
 
@@ -322,14 +324,17 @@ public class BMP388 {
     @Override
     public void run() {
       int delay = 1000 / samples;
+      lastDataTime = System.currentTimeMillis();
       while (!shutdown) {
+        long endTime = lastDataTime + delay;
         double[] sensorData = getPTA();
         dataList.add(sensorData);
+        lastDataTime = System.currentTimeMillis();
 
         if (dataList.size() > samples * 2)
           dataList.remove(0);
 
-        Util.delay(delay);
+        Util.delay(Math.max(0, (int) (endTime - System.currentTimeMillis())));
       }
     }
 
