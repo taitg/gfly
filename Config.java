@@ -66,6 +66,8 @@ public class Config {
 	public static int ledSensorDelayTime = 50; // milliseconds to delay sensor reading after LED is fired
 	public static int ledExtraFlashColour = -1; // one extra flash per reading - use a colour code from LED.java
 
+	public static boolean varioAudioOn = true;
+
 	// GPIO pin assignments (wiringPi numbering)
 	// pin 8 is for sensor SDA (I2C)
 	// pin 9 is for sensor SCL (I2C)
@@ -74,6 +76,14 @@ public class Config {
 	public static int gpsLedPin = 2;
 	public static int gpsSwitchPin = 3;
 	public static int piezoPin = 1;
+	public static int lcdRsPin = 4;
+	public static int lcdStrobePin = 5;
+	public static int lcdData1Pin = 6;
+	public static int lcdData2Pin = 10;
+	public static int lcdData3Pin = 11;
+	public static int lcdData4Pin = 31;
+	public static int mainSwitchOutPin = 23;
+	public static int mainSwitchInPin = 24;
 
 	/**
 	 * Load config values from file

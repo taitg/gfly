@@ -39,8 +39,8 @@ public class DeviceController {
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
 			tone = new Tone(Config.piezoPin, "piezo");
 			sensor = new BMP388(i2cBus);
-			mainSwitch = new Switch(gpio, "main", 24);
-			switchOut = new SimplePin(gpio, "switchOut", 23);
+			mainSwitch = new Switch(gpio, "main", Config.mainSwitchInPin);
+			switchOut = new SimplePin(gpio, "switchOut", Config.mainSwitchOutPin);
 			switchOut.on();
 
 			if (Config.verbose)

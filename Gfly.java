@@ -70,9 +70,9 @@ public class Gfly {
 	private static double handleAltitudeChange() {
 		double diff = controller.getAltitudeChange();
 
-		if (diff > 0.5) {
+		if (Config.varioAudioOn && diff > 0.5) {
 			controller.setTone(440 + (int) (440 * diff));
-		} else if (diff < -0.5) {
+		} else if (Config.varioAudioOn && diff < -0.5) {
 			controller.setTone(220 + (int) (110 * diff));
 		} else {
 			controller.setTone(0);
@@ -96,31 +96,14 @@ public class Gfly {
 				Errors.handleException(e, "cannot write GPS file");
 			}
 			System.out.print(gpsStr);
-		}
 
-		lastGPSTime = System.currentTimeMillis();
+			lastGPSTime = System.currentTimeMillis();
+		}
 
 		return gps;
 	}
 
-	private static void main powerDown() {
-		try {
-			Process p = Runtime.getRuntime().exec("sudo shutdown -h now");
-			p.waitFor();
-		} catch (Exception e) {
-			Errors.handleException(e, "could not shut down!");
-		}
-		break;
-	}
-
-	private static void mainLoop() {
-		// read and handle commands if accepting them
-		if (acceptingCommands)
-			handleDevCommand();
-
-		GPSData gps = handleGPS();
-		double diff = handleAltitudeChange();
-
+	private static void handleLCD(GPSData gps, double diff) {
 		if (System.currentTimeMillis() - lastLCDUpdateTime > 200) {
 			double[] pta = controller.getPTA();
 			double temp = pta[1];
@@ -136,26 +119,59 @@ public class Gfly {
 
 			lastLCDUpdateTime = System.currentTimeMillis();
 		}
+	}
 
+	private static void handleButton() {
 		if (controller.getButton().isPressed()) {
-			controller.setLCDLine(0, "Shutting down...");
 			long pressTime = System.currentTimeMillis();
 			while (controller.getButton().isPressed()) {
 				long time = System.currentTimeMillis() - pressTime;
-				if (time < 1000)
-					controller.setLCDLine(0, " [            ] ");
-				else if (time < 2000)
-					controller.setLCDLine(0, " [            ] ");
-				else if (time < 3000)
-					controller.setLCDLine(0, " [            ] ");
-				else
-					controller.setLCDLine(0, " [            ] ");
-				if (time > 3200) {
-					powerDown();
+				if (time > 500) {
+					if (time < 1000) {
+						controller.setLCDLine(0, "Shutting down...");
+						controller.setLCDLine(1, " [            ] ");
+					} else if (time < 2000)
+						controller.setLCDLine(1, " [>>>>        ] ");
+					else if (time < 3000)
+						controller.setLCDLine(1, " [>>>>>>>>    ] ");
+					else
+						controller.setLCDLine(1, " [>>>>>>>>>>>>] ");
+
+					if (time > 3500) {
+						powerDown();
+						return;
+					}
 				}
-				Util.delay(200);
+				Util.delay(250);
+			}
+			if (System.currentTimeMillis() - pressTime < 500) {
+				Config.varioAudioOn = !Config.varioAudioOn;
+				controller.setLCDLine(0, "  VARIO AUDIO   ");
+				controller.setLCDLine(1, String.format("      %s       ", Config.varioAudioOn == true ? "ON " : "OFF"));
+				Util.delay(1000);
 			}
 		}
+	}
+
+	private static void powerDown() {
+		try {
+			controller.shutdown();
+			Process p = Runtime.getRuntime().exec("sudo shutdown -h now");
+			p.waitFor();
+		} catch (Exception e) {
+			Errors.handleException(e, "could not shut down!");
+		}
+	}
+
+	private static void mainLoop() {
+		// read and handle commands if accepting them
+		if (acceptingCommands)
+			handleDevCommand();
+
+		GPSData gps = handleGPS();
+		double diff = handleAltitudeChange();
+		handleLCD(gps, diff);
+		handleButton();
 
 		Util.delay(Config.mainLoopDelay);
 	}

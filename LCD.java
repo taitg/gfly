@@ -18,17 +18,15 @@ public class LCD {
 
   public LCD() {
     // initialize LCD
-    shutdown = false;
-
     handle = Lcd.lcdInit(LCD_ROWS, // number of row supported by LCD
         LCD_COLUMNS, // number of columns supported by LCD
         LCD_BITS, // number of bits used to communicate to LCD
-        4, // LCD RS pin
-        5, // LCD strobe pin
-        6, // LCD data bit 1
-        10, // LCD data bit 2
-        11, // LCD data bit 3
-        31, // LCD data bit 4
+        Config.lcdRsPin, // LCD RS pin
+        Config.lcdStrobePin, // LCD strobe pin
+        Config.lcdData1Pin, // LCD data bit 1
+        Config.lcdData2Pin, // LCD data bit 2
+        Config.lcdData3Pin, // LCD data bit 3
+        Config.lcdData4Pin, // LCD data bit 4
         0, // LCD data bit 5 (set to 0 if using 4 bit communication)
         0, // LCD data bit 6 (set to 0 if using 4 bit communication)
         0, // LCD data bit 7 (set to 0 if using 4 bit communication)
@@ -50,6 +48,7 @@ public class LCD {
     Lcd.lcdClear(handle);
     Util.delay(1000);
 
+    shutdown = false;
     writeLine(0, "      GFLY      ");
     writeLine(1, "                ");
   }
