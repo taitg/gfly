@@ -109,6 +109,17 @@ public class DeviceController {
 		lcd.writeLine(lineNum, line);
 	}
 
+	public void setLCDProgressBar(int lineNum, int progress, int max) {
+		int n = (int) ((double) progress * 12.0 / (double) max);
+		String output = " [";
+		for (int i = 0; i < 12; i++) {
+			if (i < n) output += ">";
+			else output += " ";
+		}
+		output += "] ";
+		lcd.writeLine(lineNum, output);
+	}
+
 	public void testComponent(String... args) {
 		try {
 			// print GPS data

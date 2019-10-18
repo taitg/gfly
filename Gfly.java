@@ -111,8 +111,8 @@ public class Gfly {
 			if (gps != null && gps.getAltitude() > 0)
 				altitude = (altitude + gps.getAltitude()) * 0.5;
 
-			String line1 = String.format("%-6.1fm  %4.1fkph", altitude, gps.getSpeed() * 1.852);
-			String line2 = String.format("%-4.1fC   %+5.1fm/s", temp, diff);
+			String line1 = String.format("%-6.1fm %5.1fkph", altitude, gps.getSpeed() * 1.852);
+			String line2 = String.format("%-4.1fC %+7.1fm/s", temp, diff);
 			controller.setLCDLine(0, line1);
 			controller.setLCDLine(1, line2);
 			System.out.printf("%s %s\n", line1, line2);
@@ -122,33 +122,73 @@ public class Gfly {
 	}
 
 	private static void handleButton() {
+		int selected = 0;
+
+		// first press
 		if (controller.getButton().isPressed()) {
 			long pressTime = System.currentTimeMillis();
+			
+			// until first release
 			while (controller.getButton().isPressed()) {
-				long time = System.currentTimeMillis() - pressTime;
-				if (time > 500) {
-					if (time < 1000) {
-						controller.setLCDLine(0, "Shutting down...");
-						controller.setLCDLine(1, " [            ] ");
-					} else if (time < 2000)
-						controller.setLCDLine(1, " [>>>>        ] ");
-					else if (time < 3000)
-						controller.setLCDLine(1, " [>>>>>>>>    ] ");
-					else
-						controller.setLCDLine(1, " [>>>>>>>>>>>>] ");
-
-					if (time > 3500) {
-						powerDown();
-						return;
-					}
-				}
-				Util.delay(250);
+				Util.delay(200);
 			}
-			if (System.currentTimeMillis() - pressTime < 500) {
-				Config.varioAudioOn = !Config.varioAudioOn;
-				controller.setLCDLine(0, "  VARIO AUDIO   ");
-				controller.setLCDLine(1, String.format("      %s       ", Config.varioAudioOn == true ? "ON " : "OFF"));
-				Util.delay(1000);
+
+			// first release, if short
+			if (System.currentTimeMillis() - pressTime < 1000) {
+				long releaseTime = System.currentTimeMillis();
+
+				// repeat until release timeout
+				while (System.currentTimeMillis() - releaseTime < 5000) {
+
+					// second press
+					if (controller.getButton().isPressed()) {
+						pressTime = System.currentTimeMillis();
+			
+						// repeat until second release
+						while (controller.getButton().isPressed()) {
+							long time = System.currentTimeMillis() - pressTime;
+
+							if (time > 500) {
+								if (selected == 0) controller.setLCDLine(0, "Switching vario ");
+								else if (selected == 1) controller.setLCDLine(0, "Shutting down...");
+								controller.setLCDProgressBar(1, (int) time-500, 1500);
+			
+								// second press max time reached
+								if (time > 2000) {
+									if (selected == 0) {
+										Config.varioAudioOn = !Config.varioAudioOn;
+										controller.setLCDLine(0, "  VARIO AUDIO   ");
+										controller.setLCDLine(1, String.format("      %s       ", Config.varioAudioOn == true ? "ON " : "OFF"));
+									}
+									else if (selected == 1) {
+										powerDown();
+										return;
+									}
+
+									Util.delay(1000);
+									return;
+								}
+							}
+							Util.delay(100);
+						}
+
+						// second release, if short
+						if (System.currentTimeMillis() - pressTime < 1000) {
+							selected = (selected + 1) % 2;
+						}
+						if (System.currentTimeMillis() - pressTime < 2500) {
+							releaseTime = System.currentTimeMillis();
+						}
+					}
+
+					// after one short press
+					else {
+						controller.setLCDLine(0, String.format("%s VARIO %s     ", selected == 0 ? ">" : " ", Config.varioAudioOn == true ? "ON " : "OFF"));
+						controller.setLCDLine(1, String.format("%s POWER DOWN    ", selected == 1 ? ">" : " "));
+					}
+
+					Util.delay(200);
+				}
 			}
 		}
 	}
@@ -164,16 +204,21 @@ public class Gfly {
 	}
 
 	private static void mainLoop() {
-		// read and handle commands if accepting them
-		if (acceptingCommands)
-			handleDevCommand();
+		try {
+			// read and handle commands if accepting them
+			if (acceptingCommands)
+				handleDevCommand();
 
-		GPSData gps = handleGPS();
-		double diff = handleAltitudeChange();
-		handleLCD(gps, diff);
-		handleButton();
+			GPSData gps = handleGPS();
+			double diff = handleAltitudeChange();
+			handleLCD(gps, diff);
+			handleButton();
 
-		Util.delay(Config.mainLoopDelay);
+			Util.delay(Config.mainLoopDelay);
+		}
+		catch (Exception e) {
+			Errors.handleException(e, "exception in main loop");
+		}
 	}
 
 	public static void main(String... args) {
