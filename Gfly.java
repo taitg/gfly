@@ -13,8 +13,8 @@ public class Gfly {
 	public static final int DEV_COMMAND = -1;
 	public static final int WAITING = 0;
 
-	// device controller object
 	private static DeviceController controller;
+	private static Track track;
 
 	private static int state; // current system state
 	private static boolean shutdown; // flag for whether the program should shut down
@@ -81,35 +81,17 @@ public class Gfly {
 		return diff;
 	}
 
-	private static GPSData handleGPS() {
-		GPSData gps = controller.getGPSData();
-
-		if (gps != null && System.currentTimeMillis() - lastGPSTime > 1000) {
-			String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(), gps.getAltitude(),
-					gps.getSpeed(), gps.getTrackingAngle());
-
-			try {
-				String fileName = "gps.txt";
-				Files.write(Paths.get(fileName), gpsStr.getBytes(StandardCharsets.UTF_8),
-						Files.exists(Paths.get(fileName)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
-			} catch (Exception e) {
-				Errors.handleException(e, "cannot write GPS file");
-			}
-			System.out.print(gpsStr);
-
-			lastGPSTime = System.currentTimeMillis();
-		}
-
-		return gps;
-	}
-
-	private static void handleLCD(GPSData gps, double diff) {
+	private static void updateLCD(GPSData gps, double diff) {
 		if (System.currentTimeMillis() - lastLCDUpdateTime > 200) {
 			double[] pta = controller.getPTA();
 			double temp = pta[1];
-			double altitude = pta[2];
-			if (gps != null && gps.getAltitude() > 0)
-				altitude = (altitude + gps.getAltitude()) * 0.5;
+			double pressureAltitude = pta[2];
+			double gpsAltitude = gps == null ? 0.0 : gps.getAltitude();
+			double altitude = pressureAltitude;
+			if (Config.altitudeSource == 0 && gpsAltitude > 0)
+				altitude = (altitude + gpsAltitude) / 2.0;
+			else if (Config.altitudeSource == 1)
+				altitude = gpsAltitude;
 
 			String line1 = String.format("%-6.1fm %5.1fkph", altitude, gps.getSpeed() * 1.852);
 			String line2 = String.format("%-4.1fC %+7.1fm/s", temp, diff);
@@ -121,14 +103,14 @@ public class Gfly {
 		}
 	}
 
-	private static void handleButton() {
+	private static void handleButtonInput() {
 		int selected = 0;
 
 		// first press
 		if (controller.getButton().isPressed()) {
 			long pressTime = System.currentTimeMillis();
 			
-			// until first release
+			// repeat until first release
 			while (controller.getButton().isPressed()) {
 				Util.delay(200);
 			}
@@ -149,18 +131,30 @@ public class Gfly {
 							long time = System.currentTimeMillis() - pressTime;
 
 							if (time > 500) {
-								if (selected == 0) controller.setLCDLine(0, "Switching vario ");
-								else if (selected == 1) controller.setLCDLine(0, "Shutting down...");
+								if (selected == 0) controller.setLCDLine(0, "Setting tracking");
+								else if (selected == 1) controller.setLCDLine(0, " Setting vario  ");
+								else if (selected == 2) controller.setLCDLine(0, "Setting alt src ");
+								else if (selected == 3) controller.setLCDLine(0, " Shutting down  ");
 								controller.setLCDProgressBar(1, (int) time-500, 1500);
 			
 								// second press max time reached
 								if (time > 2000) {
 									if (selected == 0) {
+										track.toggle();
+										controller.setLCDLine(0, "  GPS TRACKING  ");
+										controller.setLCDLine(1, String.format("      %s       ", track.isRunning() ? "ON " : "OFF"));
+									}
+									else if (selected == 1) {
 										Config.varioAudioOn = !Config.varioAudioOn;
 										controller.setLCDLine(0, "  VARIO AUDIO   ");
 										controller.setLCDLine(1, String.format("      %s       ", Config.varioAudioOn == true ? "ON " : "OFF"));
 									}
-									else if (selected == 1) {
+									else if (selected == 2) {
+										Config.altitudeSource = (Config.altitudeSource + 1) % 3;
+										controller.setLCDLine(0, "ALTITUDE SOURCE ");
+										controller.setLCDLine(1, String.format("      %s       ", Config.altitudeSource == 1 ? "GPS" : Config.altitudeSource == 2 ? "PRS" : "AVG"));
+									}
+									else if (selected == 3) {
 										powerDown();
 										return;
 									}
@@ -174,7 +168,7 @@ public class Gfly {
 
 						// second release, if short
 						if (System.currentTimeMillis() - pressTime < 1000) {
-							selected = (selected + 1) % 2;
+							selected = (selected + 1) % 4;
 						}
 						if (System.currentTimeMillis() - pressTime < 2500) {
 							releaseTime = System.currentTimeMillis();
@@ -183,8 +177,15 @@ public class Gfly {
 
 					// after one short press
 					else {
-						controller.setLCDLine(0, String.format("%s VARIO %s     ", selected == 0 ? ">" : " ", Config.varioAudioOn == true ? "ON " : "OFF"));
-						controller.setLCDLine(1, String.format("%s POWER DOWN    ", selected == 1 ? ">" : " "));
+						if (selected < 2) {
+							controller.setLCDLine(0, String.format("%s TRACKING: %s ", selected == 0 ? ">" : " ", track.isRunning() ? "ON " : "OFF"));
+							controller.setLCDLine(1, String.format("%s VARIO: %s    ", selected == 1 ? ">" : " ", Config.varioAudioOn == true ? "ON " : "OFF"));
+						}
+						else if (selected < 4) {
+							controller.setLCDLine(0, String.format("%s ALT SRC: %s  ", selected == 2 ? ">" : " ", Config.altitudeSource == 1 ? "GPS" : Config.altitudeSource == 2 ? "PRS" : "AVG"));
+							controller.setLCDLine(1, String.format("%s POWER DOWN    ", selected == 3 ? ">" : " "));
+							// controller.setLCDLine(1, "                ");
+						}
 					}
 
 					Util.delay(200);
@@ -205,14 +206,11 @@ public class Gfly {
 
 	private static void mainLoop() {
 		try {
-			// read and handle commands if accepting them
-			if (acceptingCommands)
-				handleDevCommand();
-
-			GPSData gps = handleGPS();
+			handleDevCommand();
+			GPSData gps = controller.getGPSData(); //handleGPSData();
 			double diff = handleAltitudeChange();
-			handleLCD(gps, diff);
-			handleButton();
+			updateLCD(gps, diff);
+			handleButtonInput();
 
 			Util.delay(Config.mainLoopDelay);
 		}
@@ -232,6 +230,8 @@ public class Gfly {
 		controller = new DeviceController();
 		if (!controller.init())
 			System.exit(-1);
+
+		track = new Track(controller);
 
 		// add a shutdown hook so that the application can trap a Ctrl-C and
 		// handle it gracefully by ensuring that all components are properly shut down

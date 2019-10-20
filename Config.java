@@ -67,6 +67,7 @@ public class Config {
 	public static int ledExtraFlashColour = -1; // one extra flash per reading - use a colour code from LED.java
 
 	public static boolean varioAudioOn = true;
+	public static int altitudeSource = 0;
 
 	// GPIO pin assignments (wiringPi numbering)
 	// pin 8 is for sensor SDA (I2C)
