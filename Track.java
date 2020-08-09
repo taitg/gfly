@@ -7,22 +7,24 @@ import java.nio.file.Paths;
 
 public class Track {
 
-  private TrackWorker workerThread;
-  private DeviceController controller;
-  private boolean running;
-  private long lastGPSTime;
+	private TrackWorker workerThread;
+	private DeviceController controller;
+	private boolean running;
+	private long lastGPSTime;
+	private String filename;
 
-  public Track(DeviceController controller) {
-    if (controller != null) {
-      this.controller = controller;
-      running = false;
-      lastGPSTime = 0;
-      
-      startWorker();
+	public Track(DeviceController controller) {
+		if (controller != null) {
+			this.controller = controller;
+			running = false;
+			lastGPSTime = 0;
 
-      if (Config.verbose) System.out.println("Track: ready");
-    }
-    else if (Config.verbose) System.out.println("Track: failed to initialize");
+			startWorker();
+
+			if (Config.verbose)
+				System.out.println("Track: ready");
+		} else if (Config.verbose)
+			System.out.println("Track: failed to initialize");
 	}
 
 	/**
@@ -31,23 +33,36 @@ public class Track {
 	public void shutdown() {
 		if (workerThread != null)
 			workerThread.shutdown();
-  }
-  
-  public void run() {
-    running = true;
-  }
+	}
 
-  public void stop() {
-    running = false;
-  }
+	public void run() {
+		try {
+			String header = "type,latitude,longitude,alt,speed,course\n";
+			filename = String.format("gps_%d.txt", System.currentTimeMillis());
 
-  public void toggle() {
-    running = !running;
-  }
+			Files.write(Paths.get(filename), header.getBytes(StandardCharsets.UTF_8),
+					Files.exists(Paths.get(filename)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
 
-  public boolean isRunning() {
-    return running;
-  }
+			running = true;
+		} catch (Exception e) {
+			Errors.handleException(e, "Failed to start tracking");
+		}
+	}
+
+	public void stop() {
+		running = false;
+	}
+
+	public void toggle() {
+		if (running)
+			stop();
+		else
+			run();
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
 
 	/**
 	 * Start worker thread
@@ -81,25 +96,24 @@ public class Track {
 		public void run() {
 			while (!shutdown) {
 				if (running && System.currentTimeMillis() - lastGPSTime > 1000) {
-          GPSData gps = controller.getGPSData();
+					GPSData gps = controller.getGPSData();
 
-          if (gps != null && gps.isValid()) {
-            String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(), gps.getAltitude(),
-                gps.getSpeed(), gps.getTrackingAngle());
-      
-            try {
-              String fileName = "gps.txt";
-              Files.write(Paths.get(fileName), gpsStr.getBytes(StandardCharsets.UTF_8),
-                  Files.exists(Paths.get(fileName)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
-            } catch (Exception e) {
-              Errors.handleException(e, "cannot write GPS file");
-            }
-            System.out.print(gpsStr);
-          }
-    
-          lastGPSTime = System.currentTimeMillis();
-        }
-        Util.delay(100);
+					if (gps != null && gps.isValid()) {
+						String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(),
+								gps.getAltitude(), gps.getSpeed(), gps.getTrackingAngle());
+
+						try {
+							Files.write(Paths.get(filename), gpsStr.getBytes(StandardCharsets.UTF_8),
+									Files.exists(Paths.get(filename)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+						} catch (Exception e) {
+							Errors.handleException(e, "cannot write GPS file");
+						}
+						System.out.print(gpsStr);
+					}
+
+					lastGPSTime = System.currentTimeMillis();
+				}
+				Util.delay(100);
 			}
 		}
 
