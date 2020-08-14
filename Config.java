@@ -68,6 +68,7 @@ public class Config {
 
 	public static boolean varioAudioOn = true;
 	public static int altitudeSource = 0;
+	public static int mode = 1;
 
 	// GPIO pin assignments (wiringPi numbering)
 	// pin 8 is for sensor SDA (I2C)

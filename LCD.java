@@ -50,7 +50,7 @@ public class LCD {
 
     shutdown = false;
     writeLine(0, "      GFLY      ");
-    writeLine(1, "                ");
+    writeLine(1, "    STARTING    ");
   }
 
   public void writeLine(int lineNum, String line) {

@@ -85,7 +85,7 @@ public class DeviceController {
 		return gps.getLast();
 	}
 
-	public double[] getPTA() {
+	public PTAData getPTA() {
 		return sensor.getLastData();
 	}
 
@@ -109,6 +109,11 @@ public class DeviceController {
 		lcd.writeLine(lineNum, line);
 	}
 
+	public void setLCDLines(String line1, String line2) {
+		setLCDLine(0, line1);
+		setLCDLine(1, line2);
+	}
+
 	public void setLCDProgressBar(int lineNum, int progress, int max) {
 		int n = (int) ((double) progress * 12.0 / (double) max);
 		String output = " [";
@@ -117,7 +122,12 @@ public class DeviceController {
 			else output += " ";
 		}
 		output += "] ";
-		lcd.writeLine(lineNum, output);
+		setLCDLine(lineNum, output);
+	}
+
+	public void setLCDProgress(String line1, int progress, int max) {
+		setLCDLine(0, line1);
+		setLCDProgressBar(1, progress, max);
 	}
 
 	public void testComponent(String... args) {
@@ -152,10 +162,10 @@ public class DeviceController {
 			// test pt sensor
 			else if (args[1].equals("pt")) {
 				while (true) {
-					double[] data = sensor.getPTA();
-					System.out.printf("\nTemperature: %.02f", data[1]);
-					System.out.printf("\nPressure: %.02f", data[0]);
-					System.out.printf("\nAltitude: %.02f\n", data[2]);
+					PTAData data = sensor.getPTA();
+					System.out.printf("\nTemperature: %.02f", data.getTemperature());
+					System.out.printf("\nPressure: %.02f", data.getPressure());
+					System.out.printf("\nAltitude: %.02f\n", data.getAltitude());
 					Util.delay(500);
 				}
 			}

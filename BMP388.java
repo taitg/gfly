@@ -24,7 +24,7 @@ public class BMP388 {
 
   private I2CDevice device;
   private BMP388Worker workerThread;
-  private ArrayList<double[]> dataList;
+  private ArrayList<PTAData> dataList;
   private double[] tempCalib;
   private double[] pressureCalib;
   private double seaLevelPressure;
@@ -50,7 +50,7 @@ public class BMP388 {
       lastAltitude = 0;
       lastDataTime = 0;
       seaLevelPressure = 1013.25;
-      dataList = new ArrayList<double[]>();
+      dataList = new ArrayList<PTAData>();
 
       setPressureOversampling(8);
       setTemperatureOversampling(1);
@@ -90,20 +90,21 @@ public class BMP388 {
     return (getAverageAltitude(size) - getPrevAverageAltitude(size));
   }
 
-  public double[] getPTA() {
+  public PTAData getPTA() {
     double[] pt = read();
     double pressure = pt[0] / 100;
-    double[] result = new double[] { pressure, pt[1], calcAltitude(pressure) };
+    // double[] result = new double[] { pressure, pt[1], calcAltitude(pressure) };
+    PTAData result = new PTAData(pressure, pt[1], calcAltitude(pressure));
     return result;
   }
 
-  public double[] getLastData() {
+  public PTAData getLastData() {
     if (dataList.size() < 1)
       return null;
     return dataList.get(dataList.size() - 1);
   }
 
-  public ArrayList<double[]> getAllData() {
+  public ArrayList<PTAData> getAllData() {
     return dataList;
   }
 
@@ -124,14 +125,14 @@ public class BMP388 {
     int min = dataList.size() - size;
     for (int i = dataList.size() - 1; i >= min; i--)
       if (dataList.get(i) != null)
-        sum += dataList.get(i)[2];
+        sum += dataList.get(i).getAltitude();
     return sum / size;
   }
 
   public double getPrevAverageAltitude(int size) {
     double sum = 0.0;
     for (int i = 0; i < size; i++)
-      sum += dataList.get(i)[2];
+      sum += dataList.get(i).getAltitude();
     return sum / size;
   }
 
@@ -327,7 +328,7 @@ public class BMP388 {
       lastDataTime = System.currentTimeMillis();
       while (!shutdown) {
         long endTime = lastDataTime + delay;
-        double[] sensorData = getPTA();
+        PTAData sensorData = getPTA();
         dataList.add(sensorData);
         lastDataTime = System.currentTimeMillis();
 

@@ -4,13 +4,13 @@
  */
 public class GPSData {
 	
-	private boolean valid; // flag for whether the module reported it had a fix
+	private boolean valid; // flag for whether the module reported it had a GPS fix
 	private String time; // time in HH.MM.SS
 	private String date; // date in YYYY-MM-DD
 	private double latitude; // latitude as a decimal
 	private double longitude; // longitude as a decimal
-	private double altitude;
-	private double speed; // speed as a decimal
+	private double altitude; // altitude in m as a decimal
+	private double speed; // speed in knots as a decimal
 	private double trackingAngle; // tracking angle as a decimal
 	private boolean switchPressed; // flag for whether the GPS switch was pressed
 	
@@ -69,6 +69,8 @@ public class GPSData {
 	 * @return True if GPS module had a fix
 	 */
 	public boolean isValid() { return valid; }
+
+	public boolean isComplete() { return valid && altitude > 0; }
 	
 	/**
 	 * Returns time
@@ -110,11 +112,18 @@ public class GPSData {
 	public void setAltitude(double altitude) { this.altitude = altitude; };
 	
 	/**
-	 * Returns speed
+	 * Returns speed in knots
 	 * 
 	 * @return Speed as a decimal
 	 */
 	public double getSpeed() { return speed; }
+	
+	/**
+	 * Returns speed in km/h
+	 * 
+	 * @return Speed as a decimal
+	 */
+	public double getSpeedKMH() { return speed * 1.852; }
 	
 	/**
 	 * Returns tracking angle
