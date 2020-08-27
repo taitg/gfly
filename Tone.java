@@ -9,7 +9,6 @@ public class Tone {
 	private ToneWorker workerThread;
 	private int pinNum;
 	private String name;
-	private boolean playing;
 	private ArrayList<Integer> queue;
 
 	/**
@@ -18,7 +17,6 @@ public class Tone {
 	public Tone(int pinNum, String name) {
 		this.pinNum = pinNum;
 		this.name = name;
-		playing = false;
 		queue = new ArrayList<>();
 
 		// set up GPIO pin
@@ -59,7 +57,7 @@ public class Tone {
 		if (Config.verbose)
 			System.out.printf("Tone: %s off\n", name);
 		SoftTone.softToneStop(pinNum);
-		playing = false;
+		queue.clear();
 	}
 
 	/**
@@ -80,8 +78,6 @@ public class Tone {
 		} else
 			SoftTone.softToneWrite(pinNum, 0);
 
-		playing = freq > 0;
-
 		if (time > 0) {
 			Util.delay(time);
 			play(0);
@@ -89,7 +85,7 @@ public class Tone {
 	}
 
 	public void setFreq(int freq) {
-		queue.add(new Integer(freq));
+		queue.add(Integer.valueOf(freq));
 	}
 
 	/**

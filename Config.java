@@ -101,6 +101,7 @@ public class Config {
 			while (scanner.hasNext())
 				handleConfigLine(scanner.next());
 			updateArrays();
+			scanner.close();
 			if (verbose)
 				System.out.printf("Loaded config file (%s)\n", configFile);
 		} catch (Exception e) {

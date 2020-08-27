@@ -9,10 +9,10 @@ public class BMP388 {
   private static byte REGISTER_CHIPID = 0x00;
   private static byte REGISTER_STATUS = 0x03;
   private static byte REGISTER_PRESSUREDATA = 0x04;
-  private static byte REGISTER_TEMPDATA = 0x07;
+  // private static byte REGISTER_TEMPDATA = 0x07;
   private static byte REGISTER_CONTROL = 0x1B;
   private static byte REGISTER_OSR = 0x1C;
-  private static byte REGISTER_ODR = 0x1D;
+  // private static byte REGISTER_ODR = 0x1D;
   private static byte REGISTER_CONFIG = 0x1F;
   private static byte REGISTER_CAL_DATA = 0x31;
   private static byte REGISTER_CMD = 0x7E;
@@ -28,9 +28,9 @@ public class BMP388 {
   private double seaLevelPressure;
   private double lastAltitude;
   private long lastDataTime;
-  private int pressureOversampling;
-  private int temperatureOversampling;
-  private int filterCoefficient;
+  // private int pressureOversampling;
+  // private int temperatureOversampling;
+  // private int filterCoefficient;
 
   public BMP388(I2CBus i2cBus) throws IOException {
     try {

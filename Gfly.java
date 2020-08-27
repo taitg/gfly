@@ -1,11 +1,4 @@
-import java.util.ArrayList;
-import java.io.PrintWriter;
 import java.util.Scanner;
-
-import java.nio.charset.StandardCharsets;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class Gfly {
 
@@ -37,8 +30,10 @@ public class Gfly {
 				String input = null;
 				String[] args = null;
 				try {
-					input = new Scanner(System.in).nextLine();
+					Scanner scanner = new Scanner(System.in);
+					input = scanner.nextLine();
 					args = input.split(" ");
+					scanner.close();
 				} catch (Exception e) {
 					// if it can't read, just return, the program probably quit
 					return;
@@ -85,6 +80,11 @@ public class Gfly {
 	private static void handleButtonInput() {
 		if (controller.getButton().isPressed()) {
 			long pressTime = System.currentTimeMillis();
+
+			while (controller.getButton().isPressed()) {
+				if (System.currentTimeMillis() - pressTime > 3000)
+					powerDown();
+			}
 		}
 	}
 

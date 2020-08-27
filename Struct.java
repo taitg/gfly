@@ -13,8 +13,6 @@
  */
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.lang.*;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -158,34 +156,34 @@ public class Struct {
     public byte[] pack_single_data(char fmt, long val) {
         byte[] bx;
         switch (fmt) {
-            case 'b':
-                byte b = (byte) (val & 0xff);
-                bx = packRaw_8b(b);
-                break;
+        case 'b':
+            byte b = (byte) (val & 0xff);
+            bx = packRaw_8b(b);
+            break;
 
-            case 'h':
-                short value = (short) (val & 0xffff);
-                bx = packRaw_16b(value);
-                break;
+        case 'h':
+            short value = (short) (val & 0xffff);
+            bx = packRaw_16b(value);
+            break;
 
-            case 'H':
-                bx = packRaw_u16b((int) val);
-                break;
+        case 'H':
+            bx = packRaw_u16b((int) val);
+            break;
 
-            case 'i':
-                int ival = (int) (val & 0xffffffff);
-                bx = packRaw_32b(ival);
-                break;
+        case 'i':
+            int ival = (int) (val & 0xffffffff);
+            bx = packRaw_32b(ival);
+            break;
 
-            case 'I':
-                bx = packRaw_u32b(val);
-                break;
+        case 'I':
+            bx = packRaw_u32b(val);
+            break;
 
-            default:
-                // do nothing
-                System.out.println("Invalid format specifier");
-                bx = null;
-                break;
+        default:
+            // do nothing
+            System.out.println("Invalid format specifier");
+            bx = null;
+            break;
 
         }
 
@@ -329,41 +327,41 @@ public class Struct {
     public long unpack_single_data(char fmt, byte[] val) throws Exception {
         long var = 0;
         switch (fmt) {
-            case 'b':
-                if (val.length != 1)
-                    throw new Exception("Byte length mismatch");
-                var = unpackRaw_8b(val);
-                break;
+        case 'b':
+            if (val.length != 1)
+                throw new Exception("Byte length mismatch");
+            var = unpackRaw_8b(val);
+            break;
 
-            case 'h':
-                if (val.length != 2)
-                    throw new Exception("Byte length mismatch");
-                var = unpackRaw_16b(val);
-                break;
+        case 'h':
+            if (val.length != 2)
+                throw new Exception("Byte length mismatch");
+            var = unpackRaw_16b(val);
+            break;
 
-            case 'H':
-                if (val.length != 2)
-                    throw new Exception("Byte length mismatch");
+        case 'H':
+            if (val.length != 2)
+                throw new Exception("Byte length mismatch");
 
-                var = unpackRaw_u16b(val);
-                break;
+            var = unpackRaw_u16b(val);
+            break;
 
-            case 'i':
-                if (val.length != 4)
-                    throw new Exception("Byte length mismatch");
+        case 'i':
+            if (val.length != 4)
+                throw new Exception("Byte length mismatch");
 
-                var = unpackRaw_32b(val);
-                break;
+            var = unpackRaw_32b(val);
+            break;
 
-            case 'I':
-                if (val.length != 4)
-                    throw new Exception("Byte length mismatch");
-                var = unpackRaw_u32b(val);
-                break;
+        case 'I':
+            if (val.length != 4)
+                throw new Exception("Byte length mismatch");
+            var = unpackRaw_u32b(val);
+            break;
 
-            default:
-                // do nothing;
-                break;
+        default:
+            // do nothing;
+            break;
         }
 
         return var;

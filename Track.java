@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.Files;

@@ -2,7 +2,6 @@ import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CFactory;
-import java.util.ArrayList;
 
 /**
  * Controls devices and I/O
@@ -15,7 +14,6 @@ public class DeviceController {
 	private GPS gps;
 	private Tone tone;
 	private BMP388 sensor;
-	private ArrayList<LED> leds;
 	private SimplePin switchOut;
 	private Switch mainSwitch;
 

@@ -1,5 +1,4 @@
 import com.pi4j.io.serial.*;
-import com.pi4j.util.Console;
 import java.io.IOException;
 import java.util.ArrayList;
 import com.pi4j.io.gpio.GpioController;
