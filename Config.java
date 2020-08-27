@@ -63,6 +63,23 @@ public class Config {
 	public static int ledExtraFlashColour = -1; // one extra flash per reading - use a colour code from LED.java
 
 	public static boolean varioAudioOn = true;
+	public static double varioClimbThreshold = 0.2;
+	public static int varioClimbBaseFreq = 400; // was 440 both
+	public static int varioClimbDiffFreq = 480;
+	public static double varioSinkThreshold = -1.0;
+	public static int varioSinkBaseFreq = 220;
+	public static int varioSinkDiffFreq = 110;
+
+	public static int sensorSamples = 25;
+	public static int sensorTime = 1000;
+
+	// don't change
+	public static int sensorDelay = sensorTime / sensorSamples;
+	public static double sensorFactor = 1000.0 / (double) sensorTime;
+
+	public static int toneFreqMin = 110;
+	public static int toneFreqMax = 3520;
+	public static double tonePulseBase = 100_000.0; // divided by freq
 
 	// GPIO pin assignments (wiringPi numbering)
 	// pin 8 is for sensor SDA (I2C)

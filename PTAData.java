@@ -10,9 +10,15 @@ public class PTAData {
     this.altitude = altitude;
   }
 
-  public double getPressure() { return pressure; }
+  public double getPressure() {
+    return pressure;
+  }
 
-  public double getTemperature() { return temperature; }
+  public double getTemperature() {
+    return temperature;
+  }
 
-  public double getAltitude() { return altitude; }
+  public double getAltitude() {
+    return altitude;
+  }
 }

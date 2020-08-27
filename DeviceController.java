@@ -128,7 +128,7 @@ public class DeviceController {
 					}
 				}
 			}
-			
+
 			else if (args[1].equals("beep")) {
 				for (int i = 0; i < 40; i++) {
 					setTone(Integer.parseInt(args[2]));

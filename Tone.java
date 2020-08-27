@@ -76,7 +76,7 @@ public class Tone {
 		if (freq > 0) {
 			if (Config.verbose)
 				System.out.printf("Tone: %s playing freq %d\n", name, freq);
-			SoftTone.softToneWrite(pinNum, Math.min(Math.max(freq, 110), 3520));
+			SoftTone.softToneWrite(pinNum, Math.min(Math.max(freq, Config.toneFreqMin), Config.toneFreqMax));
 		} else
 			SoftTone.softToneWrite(pinNum, 0);
 
@@ -119,7 +119,7 @@ public class Tone {
 					queue.remove(queue.size() - 1);
 
 					if (freq > 0) {
-						int pulseTime = 1 + (int) (100_000.0 / freq);
+						int pulseTime = 1 + (int) (Config.tonePulseBase / freq);
 						long pulseEndTime = System.currentTimeMillis() + pulseTime;
 
 						if (Config.verbose)

@@ -70,10 +70,11 @@ public class Gfly {
 		double diff = controller.getAltitudeChange();
 
 		System.out.println(String.format("Alt diff %f", diff));
-		if (Config.varioAudioOn && diff > 0.2) {
-			controller.setTone(400 + (int) (480 * diff)); // 440 both
-		} else if (Config.varioAudioOn && diff < -1) {
-			controller.setTone(220 + (int) (110 * diff));
+
+		if (Config.varioAudioOn && diff > Config.varioClimbThreshold) {
+			controller.setTone(Config.varioClimbBaseFreq + (int) (Config.varioClimbDiffFreq * diff));
+		} else if (Config.varioAudioOn && diff < Config.varioSinkThreshold) {
+			controller.setTone(Config.varioSinkBaseFreq + (int) (Config.varioSinkDiffFreq * diff));
 		} else {
 			controller.setTone(0);
 		}
