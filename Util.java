@@ -19,6 +19,7 @@ public class Util {
 	 * @param milliseconds How long to wait for
 	 */
 	public static void delay(int milliseconds) {
+		if (milliseconds < 1) return;
 		try {
 			Thread.sleep(milliseconds);
 		} catch (InterruptedException e) {

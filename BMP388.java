@@ -20,7 +20,10 @@ public class BMP388 {
   private static int[] OSR_SETTINGS = { 1, 2, 4, 8, 16, 32 }; // pressure and temperature oversampling settings
   private static int[] IIR_SETTINGS = { 0, 2, 4, 8, 16, 32, 64, 128 }; // IIR filter coefficients
 
-  public static int samples = 20;
+  public static int samples = 25;
+  public static int milliseconds = 1000;
+  public static int delay = milliseconds / samples;
+  public static double factor = 1000.0 / (double) milliseconds;
 
   private I2CDevice device;
   private BMP388Worker workerThread;
@@ -87,13 +90,12 @@ public class BMP388 {
     if (dataList.size() < samples * 2)
       return 0;
     int size = Math.min(dataList.size(), samples);
-    return (getAverageAltitude(size) - getPrevAverageAltitude(size));
+    return factor * (getAverageAltitude(size) - getPrevAverageAltitude(size));
   }
 
   public PTAData getPTA() {
     double[] pt = read();
     double pressure = pt[0] / 100;
-    // double[] result = new double[] { pressure, pt[1], calcAltitude(pressure) };
     PTAData result = new PTAData(pressure, pt[1], calcAltitude(pressure));
     return result;
   }
@@ -324,18 +326,16 @@ public class BMP388 {
      */
     @Override
     public void run() {
-      int delay = 1000 / samples;
       lastDataTime = System.currentTimeMillis();
       while (!shutdown) {
         long endTime = lastDataTime + delay;
-        PTAData sensorData = getPTA();
-        dataList.add(sensorData);
+        dataList.add(getPTA());
         lastDataTime = System.currentTimeMillis();
 
         if (dataList.size() > samples * 2)
           dataList.remove(0);
 
-        Util.delay(Math.max(0, (int) (endTime - System.currentTimeMillis())));
+        Util.delay((int) (endTime - System.currentTimeMillis()));
       }
     }
 

@@ -1,4 +1,5 @@
 import com.pi4j.wiringpi.SoftTone;
+import java.util.ArrayList;
 
 /**
  * Controller class for simple tones
@@ -8,8 +9,8 @@ public class Tone {
 	private ToneWorker workerThread;
 	private int pinNum;
 	private String name;
-	private int freq;
 	private boolean playing;
+	private ArrayList<Integer> queue;
 
 	/**
 	 * Constructor for a tone controller object
@@ -18,7 +19,7 @@ public class Tone {
 		this.pinNum = pinNum;
 		this.name = name;
 		playing = false;
-		freq = 0;
+		queue = new ArrayList<>();
 
 		// set up GPIO pin
 		int success = SoftTone.softToneCreate(pinNum);
@@ -74,7 +75,7 @@ public class Tone {
 	public void play(int freq, int time) {
 		if (freq > 0) {
 			if (Config.verbose)
-				System.out.printf("Tone: %s playing freq %d for %dms\n", name, freq, time);
+				System.out.printf("Tone: %s playing freq %d\n", name, freq);
 			SoftTone.softToneWrite(pinNum, Math.min(Math.max(freq, 110), 3520));
 		} else
 			SoftTone.softToneWrite(pinNum, 0);
@@ -88,7 +89,7 @@ public class Tone {
 	}
 
 	public void setFreq(int freq) {
-		this.freq = freq;
+		queue.add(new Integer(freq));
 	}
 
 	/**
@@ -112,20 +113,44 @@ public class Tone {
 		@Override
 		public void run() {
 			while (!shutdown) {
-				if (freq > 0 && !playing) {
-					int pulseTime = 1 + (int) (200000.0 / freq);
-					int offTime = 1 + (int) (pulseTime / 2.0);
-					long pulseEndTime = System.currentTimeMillis() + pulseTime;
+				if (queue.size() > 0) {
+					// use and remove last freq in queue
+					int freq = (int) queue.get(queue.size() - 1);
+					queue.remove(queue.size() - 1);
 
-					while (System.currentTimeMillis() < pulseEndTime) {
-						play(freq);
-						Util.delay(10);
+					if (freq > 0) {
+						int pulseTime = 1 + (int) (100_000.0 / freq);
+						long pulseEndTime = System.currentTimeMillis() + pulseTime;
+
+						if (Config.verbose)
+							System.out.println(String.format("Pulse %dms\n>> Off %dms", pulseTime, pulseTime));
+
+						// play freq until time that pulse should stop
+						while (System.currentTimeMillis() < pulseEndTime) {
+							play(freq);
+							if (queue.size() > 1) {
+								freq = (int) queue.get(queue.size() - 1);
+								queue.remove(queue.size() - 1);
+							}
+							// Util.delay(1);
+						}
+
+						// stop sound
+						play(0);
+
+						// remove all freqs except last from queue
+						int remaining = queue.size();
+						if (remaining > 1) {
+							for (int i = 0; i < remaining - 1; i++) {
+								queue.remove(0);
+							}
+						}
+
+						// delay until next pulse should start
+						// int offTime = 1 + (int) (pulseTime * 0.75);
+						Util.delay(pulseTime);
 					}
-					freq = 0;
-					play(0);
-					Util.delay(offTime);
-				} else
-					Util.delay(200);
+				}
 			}
 		}
 

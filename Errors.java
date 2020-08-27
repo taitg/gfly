@@ -12,8 +12,9 @@ public class Errors {
 	 */
 	public static void handleException(Exception e, String message) {
 		System.err.printf("\nERROR: %s\n", message);
-		if (Config.devMode && Config.verbose)
+		if (Config.devMode && Config.verbose) {
 			e.printStackTrace();
-		System.out.println();
+			System.out.println();
+		}
 	}
 }

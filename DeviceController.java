@@ -16,7 +16,6 @@ public class DeviceController {
 	private Tone tone;
 	private BMP388 sensor;
 	private ArrayList<LED> leds;
-	private LCD lcd;
 	private SimplePin switchOut;
 	private Switch mainSwitch;
 
@@ -32,10 +31,8 @@ public class DeviceController {
 			// initialize I/O
 			i2cBus = I2CFactory.getInstance(I2CBus.BUS_1);
 			gpio = GpioFactory.getInstance();
-			com.pi4j.wiringpi.Gpio.wiringPiSetup();
 
 			// initialize component controllers
-			lcd = new LCD();
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
 			tone = new Tone(Config.piezoPin, "piezo");
 			sensor = new BMP388(i2cBus);
@@ -57,8 +54,6 @@ public class DeviceController {
 		if (Config.verbose)
 			System.out.println("Stopping devices...");
 		try {
-			if (lcd != null)
-				lcd.shutdown();
 			if (gps != null)
 				gps.shutdown();
 			if (sensor != null)
@@ -105,31 +100,6 @@ public class DeviceController {
 		tone.stop();
 	}
 
-	public void setLCDLine(int lineNum, String line) {
-		lcd.writeLine(lineNum, line);
-	}
-
-	public void setLCDLines(String line1, String line2) {
-		setLCDLine(0, line1);
-		setLCDLine(1, line2);
-	}
-
-	public void setLCDProgressBar(int lineNum, int progress, int max) {
-		int n = (int) ((double) progress * 12.0 / (double) max);
-		String output = " [";
-		for (int i = 0; i < 12; i++) {
-			if (i < n) output += ">";
-			else output += " ";
-		}
-		output += "] ";
-		setLCDLine(lineNum, output);
-	}
-
-	public void setLCDProgress(String line1, int progress, int max) {
-		setLCDLine(0, line1);
-		setLCDProgressBar(1, progress, max);
-	}
-
 	public void testComponent(String... args) {
 		try {
 			// print GPS data
@@ -146,16 +116,23 @@ public class DeviceController {
 			else if (args[1].equals("tone")) {
 				while (true) {
 					int initial = 110;
-					int max = 1024;
+					int max = 2048;
 
 					for (int i = initial; i < max; i++) {
-						tone.play(i);
+						playTone(i);
 						Util.delay(1);
 					}
 					for (int i = max; i > initial; i--) {
-						tone.play(i);
+						playTone(i);
 						Util.delay(1);
 					}
+				}
+			}
+			
+			else if (args[1].equals("beep")) {
+				for (int i = 0; i < 40; i++) {
+					setTone(Integer.parseInt(args[2]));
+					Util.delay(100);
 				}
 			}
 

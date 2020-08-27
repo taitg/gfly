@@ -28,10 +28,6 @@ public class Config {
 	// it will also be created in the current directory
 	public static String dataFolder = "data";
 
-	// naming for test data files
-	public static String dataPrefix = "FREDt_";
-	public static String dataSuffix = ".fcv";
-
 	// if true, program accepts console commands and saves additional debug data
 	public static boolean devMode = false;
 
@@ -44,7 +40,7 @@ public class Config {
 	// if using USB for GPS serial connection, use "USB"
 	// if disconnected, use "NONE"
 	// otherwise use default (UART)
-	public static String gpsSource = "USB";
+	public static String gpsSource = "UART";
 
 	// if no data is received for this number of milliseconds, consider GPS fix lost
 	public static int gpsDataTimeout = 15000;
@@ -67,8 +63,6 @@ public class Config {
 	public static int ledExtraFlashColour = -1; // one extra flash per reading - use a colour code from LED.java
 
 	public static boolean varioAudioOn = true;
-	public static int altitudeSource = 0;
-	public static int mode = 1;
 
 	// GPIO pin assignments (wiringPi numbering)
 	// pin 8 is for sensor SDA (I2C)
@@ -78,12 +72,6 @@ public class Config {
 	public static int gpsLedPin = 2;
 	public static int gpsSwitchPin = 3;
 	public static int piezoPin = 1;
-	public static int lcdRsPin = 4;
-	public static int lcdStrobePin = 5;
-	public static int lcdData1Pin = 6;
-	public static int lcdData2Pin = 10;
-	public static int lcdData3Pin = 11;
-	public static int lcdData4Pin = 31;
 	public static int mainSwitchOutPin = 23;
 	public static int mainSwitchInPin = 24;
 
@@ -120,10 +108,6 @@ public class Config {
 				verbose = b.equals("true");
 			else if (a.equals("dataFolder"))
 				dataFolder = b;
-			else if (a.equals("dataPrefix"))
-				dataPrefix = b;
-			else if (a.equals("dataSuffix"))
-				dataSuffix = b;
 			else if (a.equals("timeZone"))
 				timeZone = b;
 			else if (a.equals("gpsSource"))
