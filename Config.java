@@ -86,11 +86,21 @@ public class Config {
 	// pin 9 is for sensor SCL (I2C)
 	// pins 15 and 16 are UART
 
-	public static int gpsLedPin = 2;
+	public static int gpsLedPin = 21;
 	public static int gpsSwitchPin = 3;
 	public static int piezoPin = 1;
-	public static int mainSwitchOutPin = 23;
-	public static int mainSwitchInPin = 24;
+
+	public static int redButtonLedPin = 22;
+	public static int redButtonOutPin = 23;
+	public static int redButtonInPin = 24;
+
+	public static int yellowButtonLedPin = 12;
+	public static int yellowButtonOutPin = 13;
+	public static int yellowButtonInPin = 14;
+
+	public static int greenButtonLedPin = 7;
+	public static int greenButtonOutPin = 0;
+	public static int greenButtonInPin = 2;
 
 	/**
 	 * Load config values from file

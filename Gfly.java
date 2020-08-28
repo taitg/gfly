@@ -78,12 +78,40 @@ public class Gfly {
 	}
 
 	private static void handleButtonInput() {
-		if (controller.getButton().isPressed()) {
+		if (controller.getRedButton().isPressed()) {
 			long pressTime = System.currentTimeMillis();
 
-			while (controller.getButton().isPressed()) {
-				if (System.currentTimeMillis() - pressTime > 3000)
+			while (controller.getRedButton().isPressed()) {
+				if (System.currentTimeMillis() - pressTime > 3000) {
 					powerDown();
+					break;
+				}
+			}
+		} else if (controller.getYellowButton().isPressed()) {
+			long pressTime = System.currentTimeMillis();
+
+			while (controller.getYellowButton().isPressed()) {
+				if (System.currentTimeMillis() - pressTime > 100) {
+					Config.varioAudioOn = !Config.varioAudioOn;
+					if (Config.varioAudioOn)
+						controller.getYellowLed().on();
+					else
+						controller.getYellowLed().off();
+					break;
+				}
+			}
+		} else if (controller.getGreenButton().isPressed()) {
+			long pressTime = System.currentTimeMillis();
+
+			while (controller.getGreenButton().isPressed()) {
+				if (System.currentTimeMillis() - pressTime > 3000) {
+					track.toggle();
+					if (track.isRunning())
+						controller.getGreenLed().on();
+					else
+						controller.getGreenLed().off();
+					break;
+				}
 			}
 		}
 	}

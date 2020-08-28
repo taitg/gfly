@@ -14,8 +14,16 @@ public class DeviceController {
 	private GPS gps;
 	private Tone tone;
 	private BMP388 sensor;
-	private SimplePin switchOut;
-	private Switch mainSwitch;
+
+	private SimplePin redButtonPower;
+	private Switch redButton;
+	private LED redButtonLed;
+	private SimplePin yellowButtonPower;
+	private Switch yellowButton;
+	private LED yellowButtonLed;
+	private SimplePin greenButtonPower;
+	private Switch greenButton;
+	private LED greenButtonLed;
 
 	/**
 	 * Initialize components and I/O
@@ -31,12 +39,38 @@ public class DeviceController {
 			gpio = GpioFactory.getInstance();
 
 			// initialize component controllers
-			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
-			tone = new Tone(Config.piezoPin, "piezo");
+			redButtonLed = new LED(gpio, "redLed", Config.redButtonLedPin);
+			redButtonLed.on();
+
 			sensor = new BMP388(i2cBus);
-			mainSwitch = new Switch(gpio, "main", Config.mainSwitchInPin);
-			switchOut = new SimplePin(gpio, "switchOut", Config.mainSwitchOutPin);
-			switchOut.on();
+			tone = new Tone(Config.piezoPin, "piezo");
+
+			yellowButtonLed = new LED(gpio, "yellowLed", Config.yellowButtonLedPin);
+			yellowButtonLed.on();
+
+			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
+
+			greenButtonLed = new LED(gpio, "greenLed", Config.greenButtonLedPin);
+			greenButtonLed.on();
+
+			redButton = new Switch(gpio, "redButton", Config.redButtonInPin);
+			redButtonPower = new SimplePin(gpio, "redButtonPower", Config.redButtonOutPin);
+			yellowButton = new Switch(gpio, "yellowButton", Config.yellowButtonInPin);
+			yellowButtonPower = new SimplePin(gpio, "yellowButtonPower", Config.yellowButtonOutPin);
+			greenButton = new Switch(gpio, "greenButton", Config.greenButtonInPin);
+			greenButtonPower = new SimplePin(gpio, "greenButtonPower", Config.greenButtonOutPin);
+
+			redButtonPower.on();
+			yellowButtonPower.on();
+			greenButtonPower.on();
+
+			greenButtonLed.flash(LED.ALL, 2);
+			yellowButtonLed.flash(LED.ALL, 2);
+			redButtonLed.flash(LED.ALL, 2);
+
+			greenButtonLed.off();
+			if (!Config.varioAudioOn)
+				yellowButtonLed.off();
 
 			if (Config.verbose)
 				System.out.println("Done initializing components");
@@ -52,6 +86,12 @@ public class DeviceController {
 		if (Config.verbose)
 			System.out.println("Stopping devices...");
 		try {
+			if (redButtonLed != null)
+				redButtonLed.shutdown();
+			if (yellowButtonLed != null)
+				yellowButtonLed.shutdown();
+			if (greenButtonLed != null)
+				greenButtonLed.shutdown();
 			if (gps != null)
 				gps.shutdown();
 			if (sensor != null)
@@ -65,10 +105,6 @@ public class DeviceController {
 		} catch (Exception e) {
 			Errors.handleException(e, "Failed to gracefully stop devices");
 		}
-	}
-
-	public Switch getButton() {
-		return mainSwitch;
 	}
 
 	public GPSData getGPSData() {
@@ -96,6 +132,30 @@ public class DeviceController {
 
 	public void stopTone() {
 		tone.stop();
+	}
+
+	public Switch getRedButton() {
+		return redButton;
+	}
+
+	public LED getRedLed() {
+		return redButtonLed;
+	}
+
+	public Switch getYellowButton() {
+		return yellowButton;
+	}
+
+	public LED getYellowLed() {
+		return yellowButtonLed;
+	}
+
+	public Switch getGreenButton() {
+		return greenButton;
+	}
+
+	public LED getGreenLed() {
+		return greenButtonLed;
 	}
 
 	public void testComponent(String... args) {
