@@ -18,6 +18,7 @@ public class GPS {
 	private long lastDataTime; // the last time serial data was received
 	private Switch button; // GPS switch controller
 	private LED led; // GPS LED controller
+	private boolean hasFix;
 
 	/**
 	 * Constructor for a GPS controller object
@@ -39,6 +40,8 @@ public class GPS {
 	public void init() {
 		lastDataTime = 0;
 		buffer = "";
+		hasFix = false;
+
 		if (Config.gpsSource.equals("NONE"))
 			return;
 
@@ -89,6 +92,10 @@ public class GPS {
 		} catch (Exception e) {
 			Errors.handleException(e, "Serial setup failed");
 		}
+	}
+
+	public boolean hasFix() {
+		return hasFix;
 	}
 
 	/**
@@ -162,15 +169,18 @@ public class GPS {
 	/**
 	 * Update the LED, on if any of the last 15 are valid
 	 */
-	public void updateLED() {
+	public void updateStatus() {
 		boolean hasValidData = getLastValid() != null;
 		boolean gpsActive = button == null || !button.isPressed();
 		boolean timedOut = System.currentTimeMillis() - lastDataTime > Config.gpsDataTimeout;
 
-		if (hasValidData && gpsActive && !timedOut)
+		if (hasValidData && gpsActive && !timedOut) {
 			led.off();
-		else
+			hasFix = true;
+		} else {
 			led.on();
+			hasFix = false;
+		}
 		/*
 		 * disable attempting to reinitialize after timeout if (timedOut) { init();
 		 * lastDataTime = System.currentTimeMillis(); }
@@ -233,7 +243,7 @@ public class GPS {
 				dataList.add(new GPSData(buffer, pressed));
 				if (dataList.size() > 15)
 					dataList.remove(0);
-				updateLED();
+				updateStatus();
 				buffer = "";
 			}
 		} else if (buffer.contains("$GPGGA")) {
@@ -243,7 +253,7 @@ public class GPS {
 				dataList.add(new GPSData(buffer, pressed));
 				if (dataList.size() > 15)
 					dataList.remove(0);
-				updateLED();
+				updateStatus();
 				buffer = "";
 			}
 		}

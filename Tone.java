@@ -36,6 +36,7 @@ public class Tone {
 	 * Shut down the controller
 	 */
 	public void shutdown() {
+		stop();
 		if (workerThread != null)
 			workerThread.shutdown();
 	}

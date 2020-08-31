@@ -73,6 +73,8 @@ public class Config {
 	public static int sensorSamples = 25;
 	public static int sensorTime = 1000;
 
+	public static int serverPort = 80;
+
 	// don't change
 	public static int sensorDelay = sensorTime / sensorSamples;
 	public static double sensorFactor = 1000.0 / (double) sensorTime;

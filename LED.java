@@ -154,6 +154,14 @@ public class LED {
 		}
 	}
 
+	public void clear() {
+		if (queue.size() > 0) {
+			Integer i = queue.get(0);
+			queue.clear();
+			queue.add(i);
+		}
+	}
+
 	/**
 	 * Flash full-on a number of times
 	 * 

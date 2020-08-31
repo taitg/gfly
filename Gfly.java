@@ -11,6 +11,7 @@ public class Gfly {
 	private static boolean acceptingCommands; // flag for whether the program should take commands
 
 	private static DeviceController controller;
+	private static WebServer server;
 	private static Track track;
 
 	private static void handleDevCommand() {
@@ -64,7 +65,8 @@ public class Gfly {
 	private static double handleAltitudeChange() {
 		double diff = controller.getAltitudeChange();
 
-		System.out.println(String.format("Alt diff %f", diff));
+		if (Config.verbose)
+			System.out.println(String.format("Alt diff %f", diff));
 
 		if (Config.varioAudioOn && diff > Config.varioClimbThreshold) {
 			controller.setTone(Config.varioClimbBaseFreq + (int) (Config.varioClimbDiffFreq * diff));
@@ -80,44 +82,54 @@ public class Gfly {
 	private static void handleButtonInput() {
 		if (controller.getRedButton().isPressed()) {
 			long pressTime = System.currentTimeMillis();
-
 			while (controller.getRedButton().isPressed()) {
+				Util.delay(100);
 				if (System.currentTimeMillis() - pressTime > 3000) {
 					powerDown();
 					break;
 				}
 			}
-		} else if (controller.getYellowButton().isPressed()) {
-			long pressTime = System.currentTimeMillis();
-
-			while (controller.getYellowButton().isPressed()) {
-				if (System.currentTimeMillis() - pressTime > 100) {
-					Config.varioAudioOn = !Config.varioAudioOn;
-					if (Config.varioAudioOn)
-						controller.getYellowLed().on();
-					else
-						controller.getYellowLed().off();
-					break;
-				}
-			}
+		} else if (controller.getYellowButton().wasPressed()) {
+			Config.varioAudioOn = !Config.varioAudioOn;
+			if (Config.varioAudioOn)
+				controller.getYellowLed().on();
+			else
+				controller.getYellowLed().off();
+			Util.delay(500);
 		} else if (controller.getGreenButton().isPressed()) {
 			long pressTime = System.currentTimeMillis();
-
 			while (controller.getGreenButton().isPressed()) {
+				Util.delay(100);
 				if (System.currentTimeMillis() - pressTime > 3000) {
 					track.toggle();
-					if (track.isRunning())
-						controller.getGreenLed().on();
-					else
-						controller.getGreenLed().off();
 					break;
 				}
 			}
 		}
 	}
 
+	private static void updateIndicators() {
+		if (!controller.getGPS().hasFix()) {
+			controller.getRedLed().clear();
+			controller.getRedLed().flash(1);
+		} else {
+			controller.getRedLed().on();
+		}
+
+		if (track.isRunning()) {
+			controller.getGreenLed().clear();
+			controller.getGreenLed().flash(1);
+		} else {
+			controller.getGreenLed().off();
+		}
+	}
+
 	private static void powerDown() {
 		try {
+			if (Config.varioAudioOn)
+				controller.playTone(110);
+			Util.delay(500);
+			server.shutdown();
 			controller.shutdown();
 			Process p = Runtime.getRuntime().exec("sudo shutdown -h now");
 			p.waitFor();
@@ -129,10 +141,9 @@ public class Gfly {
 	private static void mainLoop() {
 		try {
 			handleDevCommand();
-
 			handleAltitudeChange();
-
 			handleButtonInput();
+			updateIndicators();
 
 			Util.delay(Config.mainLoopDelay);
 		} catch (Exception e) {
@@ -153,6 +164,9 @@ public class Gfly {
 			System.exit(-1);
 
 		track = new Track(controller);
+
+		server = new WebServer(controller, Config.serverPort);
+		server.runServer();
 
 		// add a shutdown hook so that the application can trap a Ctrl-C and
 		// handle it gracefully by ensuring that all components are properly shut down

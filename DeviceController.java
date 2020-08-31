@@ -33,6 +33,7 @@ public class DeviceController {
 	public boolean init() {
 		if (Config.verbose)
 			System.out.println("Initializing components...");
+
 		try {
 			// initialize I/O
 			i2cBus = I2CFactory.getInstance(I2CBus.BUS_1);
@@ -40,18 +41,25 @@ public class DeviceController {
 
 			// initialize component controllers
 			redButtonLed = new LED(gpio, "redLed", Config.redButtonLedPin);
-			redButtonLed.on();
-
-			sensor = new BMP388(i2cBus);
 			tone = new Tone(Config.piezoPin, "piezo");
 
+			redButtonLed.flash(1);
+			if (Config.varioAudioOn)
+				tone.setFreq(110);
+
+			sensor = new BMP388(i2cBus);
 			yellowButtonLed = new LED(gpio, "yellowLed", Config.yellowButtonLedPin);
-			yellowButtonLed.on();
+
+			yellowButtonLed.flash(1);
+			if (Config.varioAudioOn)
+				tone.setFreq(220);
 
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
-
 			greenButtonLed = new LED(gpio, "greenLed", Config.greenButtonLedPin);
-			greenButtonLed.on();
+
+			greenButtonLed.flash(1);
+			if (Config.varioAudioOn)
+				tone.setFreq(440);
 
 			redButton = new Switch(gpio, "redButton", Config.redButtonInPin);
 			redButtonPower = new SimplePin(gpio, "redButtonPower", Config.redButtonOutPin);
@@ -59,18 +67,24 @@ public class DeviceController {
 			yellowButtonPower = new SimplePin(gpio, "yellowButtonPower", Config.yellowButtonOutPin);
 			greenButton = new Switch(gpio, "greenButton", Config.greenButtonInPin);
 			greenButtonPower = new SimplePin(gpio, "greenButtonPower", Config.greenButtonOutPin);
-
+			
 			redButtonPower.on();
 			yellowButtonPower.on();
 			greenButtonPower.on();
 
-			greenButtonLed.flash(LED.ALL, 2);
-			yellowButtonLed.flash(LED.ALL, 2);
-			redButtonLed.flash(LED.ALL, 2);
+			greenButtonLed.flash(2);
+			yellowButtonLed.flash(2);
+			redButtonLed.flash(2);
 
-			greenButtonLed.off();
+			redButtonLed.on();
 			if (!Config.varioAudioOn)
 				yellowButtonLed.off();
+			else
+				yellowButtonLed.on();
+			greenButtonLed.off();
+
+			if (Config.varioAudioOn)
+				tone.setFreq(880);
 
 			if (Config.verbose)
 				System.out.println("Done initializing components");
@@ -156,6 +170,10 @@ public class DeviceController {
 
 	public LED getGreenLed() {
 		return greenButtonLed;
+	}
+
+	public GPS getGPS() {
+		return gps;
 	}
 
 	public void testComponent(String... args) {
