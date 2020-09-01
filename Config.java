@@ -62,7 +62,9 @@ public class Config {
 	public static int ledSensorDelayTime = 50; // milliseconds to delay sensor reading after LED is fired
 	public static int ledExtraFlashColour = -1; // one extra flash per reading - use a colour code from LED.java
 
-	public static boolean varioAudioOn = true;
+	public static int serverPort = 8080;
+
+	public static boolean varioAudioOn = false;
 	public static double varioClimbThreshold = 0.2;
 	public static int varioClimbBaseFreq = 400; // was 440 both
 	public static int varioClimbDiffFreq = 480;
@@ -72,8 +74,6 @@ public class Config {
 
 	public static int sensorSamples = 25;
 	public static int sensorTime = 1000;
-
-	public static int serverPort = 80;
 
 	// don't change
 	public static int sensorDelay = sensorTime / sensorSamples;
@@ -132,6 +132,7 @@ public class Config {
 			String[] parts = line.split("=");
 			String a = parts[0];
 			String b = parts[1];
+
 			if (a.equals("devMode"))
 				devMode = b.equals("true");
 			else if (a.equals("verbose"))
@@ -140,6 +141,8 @@ public class Config {
 				dataFolder = b;
 			else if (a.equals("timeZone"))
 				timeZone = b;
+			if (a.equals("serverPort"))
+				serverPort = Integer.parseInt(b);
 			else if (a.equals("gpsSource"))
 				gpsSource = b;
 			else if (a.equals("gpsDataTimeout"))
@@ -164,10 +167,63 @@ public class Config {
 			else if (a.equals("ledExtraFlashColour"))
 				ledExtraFlashColour = Integer.parseInt(b);
 
+			if (a.equals("varioAudioOn"))
+				varioAudioOn = b.equals("true");
+			if (a.equals("varioClimbThreshold"))
+				varioClimbThreshold = Double.parseDouble(b);
+			else if (a.equals("varioClimbBaseFreq"))
+				varioClimbBaseFreq = Integer.parseInt(b);
+			else if (a.equals("varioClimbDiffFreq"))
+				varioClimbDiffFreq = Integer.parseInt(b);
+			if (a.equals("varioSinkThreshold"))
+				varioSinkThreshold = Double.parseDouble(b);
+			else if (a.equals("varioSinkBaseFreq"))
+				varioSinkBaseFreq = Integer.parseInt(b);
+			else if (a.equals("varioSinkDiffFreq"))
+				varioSinkDiffFreq = Integer.parseInt(b);
+
+			else if (a.equals("sensorSamples"))
+				sensorSamples = Integer.parseInt(b);
+			else if (a.equals("sensorTime"))
+				sensorTime = Integer.parseInt(b);
+			else if (a.equals("varioSinkBaseFreq"))
+				varioSinkBaseFreq = Integer.parseInt(b);
+			else if (a.equals("varioSinkDiffFreq"))
+				varioSinkDiffFreq = Integer.parseInt(b);
+
+			// public static int = 25;
+			// public static int = 1000;
+
+			// public static int = 80;
+
+			// public static int toneFreqMin = 110;
+			// public static int toneFreqMax = 3520;
+			// public static double tonePulseBase = 100_000.0; // divided by freq
+
 			else if (a.equals("gpsLedPin"))
 				gpsLedPin = Integer.parseInt(b);
 			else if (a.equals("gpsSwitchPin"))
 				gpsSwitchPin = Integer.parseInt(b);
+			else if (a.equals("piezoPin"))
+				piezoPin = Integer.parseInt(b);
+			else if (a.equals("redButtonLedPin"))
+				redButtonLedPin = Integer.parseInt(b);
+			else if (a.equals("redButtonOutPin"))
+				redButtonOutPin = Integer.parseInt(b);
+			else if (a.equals("redButtonInPin"))
+				redButtonInPin = Integer.parseInt(b);
+			else if (a.equals("yellowButtonLedPin"))
+				yellowButtonLedPin = Integer.parseInt(b);
+			else if (a.equals("yellowButtonOutPin"))
+				yellowButtonOutPin = Integer.parseInt(b);
+			else if (a.equals("yellowButtonInPin"))
+				yellowButtonInPin = Integer.parseInt(b);
+			else if (a.equals("greenButtonLedPin"))
+				greenButtonLedPin = Integer.parseInt(b);
+			else if (a.equals("greenButtonOutPin"))
+				greenButtonOutPin = Integer.parseInt(b);
+			else if (a.equals("greenButtonInPin"))
+				greenButtonInPin = Integer.parseInt(b);
 
 			else
 				throw new Exception();

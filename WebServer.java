@@ -21,7 +21,7 @@ public class WebServer extends Thread {
     this.port = port;
   }
 
-  public void runServer() {
+  public void init() {
     start();
     if (Config.verbose)
       System.out.println("WebServer: started");
@@ -96,8 +96,7 @@ public class WebServer extends Thread {
             fileName = fileNameSplit[0];
 
             // if request is valid and not a file, generate HTML to output
-            if (fileName.equals("") || fileName.equals("index.html") || fileName.startsWith("make?"))
-              output = generateOutput(fileName);
+            output = generateOutput(fileName);
           }
         }
 
@@ -161,14 +160,23 @@ public class WebServer extends Thread {
         SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy hh:mm:ss zzz");
         header += "Last-Modified: " + sdf.format(f.lastModified()) + "\r\n";
         header += "Content-Length: " + f.length() + "\r\n";
+      } else {
+        header += "Content-Type: application/json\r\n";
       }
 
+      header += "Access-Control-Allow-Origin: *\r\n";
       header += "Connection: close\r\n\r\n";
       return header;
     }
 
     private String generateOutput(String request) {
-      return "<html><div>vario audio: " + (Config.varioAudioOn == true ? "on" : "off") + "</div></html>";
+      // if (request.contains("gps")) {
+      System.out.println("Request " + request);
+      GPSData gps = controller.getGPSData();
+      return Util.toJSON(gps);
+      // }
+
+      // return "";
     }
   }
 }

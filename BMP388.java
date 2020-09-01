@@ -20,6 +20,8 @@ public class BMP388 {
   private static int[] OSR_SETTINGS = { 1, 2, 4, 8, 16, 32 }; // pressure and temperature oversampling settings
   private static int[] IIR_SETTINGS = { 0, 2, 4, 8, 16, 32, 64, 128 }; // IIR filter coefficients
 
+  private static double SEA_LEVEL_PRESSURE = 1013.25;
+
   private I2CDevice device;
   private BMP388Worker workerThread;
   private ArrayList<PTAData> dataList;
@@ -28,9 +30,6 @@ public class BMP388 {
   private double seaLevelPressure;
   private double lastAltitude;
   private long lastDataTime;
-  // private int pressureOversampling;
-  // private int temperatureOversampling;
-  // private int filterCoefficient;
 
   public BMP388(I2CBus i2cBus) throws IOException {
     try {
@@ -47,7 +46,7 @@ public class BMP388 {
 
       lastAltitude = 0;
       lastDataTime = 0;
-      seaLevelPressure = 1013.25;
+      seaLevelPressure = SEA_LEVEL_PRESSURE;
       dataList = new ArrayList<PTAData>();
 
       setPressureOversampling(8);

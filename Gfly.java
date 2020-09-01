@@ -90,6 +90,8 @@ public class Gfly {
 				}
 			}
 		} else if (controller.getYellowButton().wasPressed()) {
+			if (!Config.varioAudioOn)
+				controller.setTone(880);
 			Config.varioAudioOn = !Config.varioAudioOn;
 			if (Config.varioAudioOn)
 				controller.getYellowLed().on();
@@ -101,6 +103,12 @@ public class Gfly {
 			while (controller.getGreenButton().isPressed()) {
 				Util.delay(100);
 				if (System.currentTimeMillis() - pressTime > 3000) {
+					if (Config.varioAudioOn) {
+						if (track.isRunning())
+							controller.setTone(220);
+						else
+							controller.setTone(880);
+					}
 					track.toggle();
 					break;
 				}
@@ -124,18 +132,33 @@ public class Gfly {
 		}
 	}
 
+	private static void shutDown() {
+		if (Config.varioAudioOn)
+			controller.playTone(110);
+		Util.delay(500);
+		server.shutdown();
+		controller.shutdown();
+	}
+
 	private static void powerDown() {
 		try {
-			if (Config.varioAudioOn)
-				controller.playTone(110);
-			Util.delay(500);
-			server.shutdown();
-			controller.shutdown();
+			shutDown();
 			Process p = Runtime.getRuntime().exec("sudo shutdown -h now");
 			p.waitFor();
 		} catch (Exception e) {
 			Errors.handleException(e, "could not shut down!");
 		}
+	}
+
+	private static void init() {
+		controller = new DeviceController();
+		if (!controller.init())
+			System.exit(-1);
+
+		track = new Track(controller);
+
+		server = new WebServer(controller, Config.serverPort);
+		server.init();
 	}
 
 	private static void mainLoop() {
@@ -158,15 +181,7 @@ public class Gfly {
 		// wait before attempting to initialize devices
 		Util.delay(Config.programStartDelay);
 
-		// initialize the device controller, exit program if it fails
-		controller = new DeviceController();
-		if (!controller.init())
-			System.exit(-1);
-
-		track = new Track(controller);
-
-		server = new WebServer(controller, Config.serverPort);
-		server.runServer();
+		init();
 
 		// add a shutdown hook so that the application can trap a Ctrl-C and
 		// handle it gracefully by ensuring that all components are properly shut down
@@ -175,15 +190,15 @@ public class Gfly {
 			public void run() {
 				if (Config.verbose)
 					System.out.println("\nShutting down...");
-				controller.shutdown();
+				shutDown();
 			}
 		});
 
 		// initialize the program state
-		if (Config.devMode)
-			acceptingCommands = true;
 		shutdown = false;
 		state = WAITING;
+		if (Config.devMode)
+			acceptingCommands = true;
 
 		// run the main program loop
 		while (!shutdown)
