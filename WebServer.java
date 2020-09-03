@@ -171,9 +171,8 @@ public class WebServer extends Thread {
 
     private String generateOutput(String request) {
       // if (request.contains("gps")) {
-      System.out.println("Request " + request);
-      GPSData gps = controller.getGPSData();
-      return Util.toJSON(gps);
+        System.out.println("Request " + request);
+        return Util.toJSON(controller.getStatus());
       // }
 
       // return "";

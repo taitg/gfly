@@ -65,8 +65,8 @@ public class Gfly {
 	private static double handleAltitudeChange() {
 		double diff = controller.getAltitudeChange();
 
-		if (Config.verbose)
-			System.out.println(String.format("Alt diff %f", diff));
+		// if (Config.verbose)
+		// 	System.out.println(String.format("Alt diff %f", diff));
 
 		if (Config.varioAudioOn && diff > Config.varioClimbThreshold) {
 			controller.setTone(Config.varioClimbBaseFreq + (int) (Config.varioClimbDiffFreq * diff));

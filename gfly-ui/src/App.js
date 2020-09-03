@@ -15,10 +15,12 @@ class App extends React.Component {
     return (
       <div>
         {this.state.gps ? <React.Fragment>
-          <div>Altitude: {this.state.gps.altitude} m</div>
+          <div>Altitude: {this.state.gps.altitude} m / {this.state.gps.pressureAltitude} m</div>
           <div>Latitude: {this.state.gps.latitude}</div>
           <div>Longitude: {this.state.gps.longitude}</div>
           <div>Speed: {this.state.gps.speed} knots</div>
+          <div>VSpeed: {this.state.gps.verticalSpeed} m/s</div>
+          <div>Temp: {this.state.gps.temperature} C</div>
         </React.Fragment> : 'loading'}
       </div>
     );
