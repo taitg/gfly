@@ -7,15 +7,31 @@ public class Track {
 
 	private TrackWorker workerThread;
 	private DeviceController controller;
+
 	private boolean running;
 	private long lastGPSTime;
 	private String filename;
+	private GPSData initial;
+
+	private double maxSpeed;
+	private double maxAltitude;
+	private double minAltitude;
+	private double maxPressureAltitude;
+	private double minPressureAltitude;
+	private double maxClimb;
+	private double maxSink;
 
 	public Track(DeviceController controller) {
 		if (controller != null) {
 			this.controller = controller;
 			running = false;
 			lastGPSTime = 0;
+			initial = controller.getGPSData();
+			maxSpeed = 0;
+			maxAltitude = 0;
+			maxPressureAltitude = 0;
+			maxClimb = 0;
+			maxSink = 0;
 
 			startWorker();
 
@@ -62,6 +78,38 @@ public class Track {
 		return running;
 	}
 
+	public GPSData getInitialGPS() {
+		return initial;
+	}
+
+	public double getMaxSpeed() {
+		return maxSpeed;
+	}
+
+	public double getMaxAltitude() {
+		return maxAltitude;
+	}
+
+	public double getMinAltitude() {
+		return minAltitude;
+	}
+
+	public double getMaxPressureAltitude() {
+		return maxPressureAltitude;
+	}
+
+	public double getMinPressureAltitude() {
+		return minPressureAltitude;
+	}
+
+	public double getMaxClimb() {
+		return maxClimb;
+	}
+
+	public double getMaxSink() {
+		return maxSink;
+	}
+
 	/**
 	 * Start worker thread
 	 */
@@ -87,6 +135,31 @@ public class Track {
 			shutdown = false;
 		}
 
+		private void updateStats() {
+			GPSData gps = controller.getGPSData();
+			PTAData pta = controller.getPTA();
+
+			double speed = gps.getSpeedKMH();
+			double altitude = gps.getAltitude();
+			double pressureAltitude = pta.getAltitude();
+			double vSpeed = controller.getAltitudeChange();
+
+			if (speed > maxSpeed)
+				maxSpeed = speed;
+			if (altitude > maxAltitude)
+				maxAltitude = altitude;
+			if (altitude < minAltitude)
+				minAltitude = altitude;
+			if (pressureAltitude > maxPressureAltitude)
+				maxPressureAltitude = pressureAltitude;
+			if (pressureAltitude < minPressureAltitude)
+				minPressureAltitude = pressureAltitude;
+			if (vSpeed > maxClimb)
+				maxClimb = vSpeed;
+			if (vSpeed < maxSink)
+				maxSink = vSpeed;
+		}
+
 		/**
 		 * Main worker loop
 		 */
@@ -97,6 +170,9 @@ public class Track {
 					GPSData gps = controller.getGPSData();
 
 					if (gps != null && gps.isValid()) {
+						if (!initial.isValid() || !initial.isComplete())
+							initial = gps;
+
 						String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(),
 								gps.getAltitude(), gps.getSpeed(), gps.getTrackingAngle());
 

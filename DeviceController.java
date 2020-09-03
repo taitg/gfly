@@ -180,10 +180,6 @@ public class DeviceController {
 		return sensor;
 	}
 
-	public Status getStatus() {
-		return new Status(this);
-	}
-
 	public void testComponent(String... args) {
 		try {
 			// print GPS data
@@ -235,54 +231,6 @@ public class DeviceController {
 				System.out.println("Invalid test");
 		} catch (Exception e) {
 			Errors.handleException(e, "Failed to run component test");
-		}
-	}
-
-	public class Status {
-
-		private String date;
-		private String time;
-		private double altitude;
-		private double latitude;
-		private double longitude;
-		private double heading;
-		private double speed;
-		private double pressure;
-		private double pressureAltitude;
-		private double verticalSpeed;
-		private double temperature;
-
-		public Status(DeviceController controller) {
-			GPSData gps = controller.getGPSData();
-			if (gps != null) {
-				date = gps.getDate();
-				time = gps.getTime();
-				altitude = gps.getAltitude();
-				latitude = gps.getLatitude();
-				longitude = gps.getLongitude();
-				heading = gps.getTrackingAngle();
-				speed = gps.getSpeedKMH();
-			} else {
-				date = "";
-				time = "";
-				altitude = 0;
-				latitude = 0;
-				longitude = 0;
-				heading = 0;
-				speed = 0;
-			}
-			PTAData pta = controller.getPTA();
-			if (pta != null) {
-				pressure = pta.getPressure();
-				pressureAltitude = pta.getAltitude();
-				verticalSpeed = controller.getAltitudeChange();
-				temperature = pta.getTemperature();
-			} else {
-				pressure = 0;
-				pressureAltitude = 0;
-				verticalSpeed = 0;
-				temperature = 0;
-			}
 		}
 	}
 }

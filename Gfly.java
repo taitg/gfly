@@ -66,7 +66,7 @@ public class Gfly {
 		double diff = controller.getAltitudeChange();
 
 		// if (Config.verbose)
-		// 	System.out.println(String.format("Alt diff %f", diff));
+		// System.out.println(String.format("Alt diff %f", diff));
 
 		if (Config.varioAudioOn && diff > Config.varioClimbThreshold) {
 			controller.setTone(Config.varioClimbBaseFreq + (int) (Config.varioClimbDiffFreq * diff));
@@ -157,7 +157,7 @@ public class Gfly {
 
 		track = new Track(controller);
 
-		server = new WebServer(controller, Config.serverPort);
+		server = new WebServer(controller, track, Config.serverPort);
 		server.init();
 	}
 

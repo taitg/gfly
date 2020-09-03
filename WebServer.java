@@ -14,10 +14,12 @@ public class WebServer extends Thread {
 
   private volatile boolean shutdown = false;
   private DeviceController controller;
+  private Track track;
   private int port;
 
-  public WebServer(DeviceController controller, int port) {
+  public WebServer(DeviceController controller, Track track, int port) {
     this.controller = controller;
+    this.track = track;
     this.port = port;
   }
 
@@ -171,8 +173,9 @@ public class WebServer extends Thread {
 
     private String generateOutput(String request) {
       // if (request.contains("gps")) {
-        System.out.println("Request " + request);
-        return Util.toJSON(controller.getStatus());
+      System.out.println("Request \"" + request + "\"");
+      Status status = new Status(controller, track);
+      return Util.toJSON(status);
       // }
 
       // return "";

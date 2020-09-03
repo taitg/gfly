@@ -123,12 +123,18 @@ public class Tone {
 							System.out.println(String.format("Pulse %dms\n>> Off %dms", pulseTime, pulseTime));
 
 						// play freq until time that pulse should stop
+						boolean first = true;
 						while (System.currentTimeMillis() < pulseEndTime) {
 							play(freq);
-							if (queue.size() > 1) {
+							if (first) {
 								freq = (int) queue.get(queue.size() - 1);
 								queue.remove(queue.size() - 1);
+							} else if (queue.size() > 1) {
+								freq += (int) queue.get(queue.size() - 1);
+								freq /= 2;
+								queue.remove(queue.size() - 1);
 							}
+							first = false;
 							// Util.delay(1);
 						}
 

@@ -90,19 +90,20 @@ public class Config {
 
 	public static int gpsLedPin = 2; // unused
 	public static int gpsSwitchPin = 0; // unused
+
 	public static int piezoPin = 3;
 
-	public static int redButtonLedPin = 1;
-	public static int redButtonOutPin = 4;
-	public static int redButtonInPin = 5;
+	public static int redButtonLedPin = 22;
+	public static int redButtonOutPin = 23;
+	public static int redButtonInPin = 24;
 
 	public static int yellowButtonLedPin = 12;
 	public static int yellowButtonOutPin = 13;
 	public static int yellowButtonInPin = 14;
 
-	public static int greenButtonLedPin = 22;
-	public static int greenButtonOutPin = 23;
-	public static int greenButtonInPin = 24;
+	public static int greenButtonLedPin = 1;
+	public static int greenButtonOutPin = 4;
+	public static int greenButtonInPin = 5;
 
 	/**
 	 * Load config values from file
@@ -184,21 +185,12 @@ public class Config {
 
 			else if (a.equals("sensorSamples"))
 				sensorSamples = Integer.parseInt(b);
-			else if (a.equals("sensorTime"))
-				sensorTime = Integer.parseInt(b);
-			else if (a.equals("varioSinkBaseFreq"))
-				varioSinkBaseFreq = Integer.parseInt(b);
-			else if (a.equals("varioSinkDiffFreq"))
-				varioSinkDiffFreq = Integer.parseInt(b);
-
-			// public static int = 25;
-			// public static int = 1000;
-
-			// public static int = 80;
-
-			// public static int toneFreqMin = 110;
-			// public static int toneFreqMax = 3520;
-			// public static double tonePulseBase = 100_000.0; // divided by freq
+			else if (a.equals("toneFreqMin"))
+				toneFreqMin = Integer.parseInt(b);
+			else if (a.equals("toneFreqMax"))
+				toneFreqMax = Integer.parseInt(b);
+			else if (a.equals("tonePulseBase"))
+				tonePulseBase = Double.parseDouble(b);
 
 			else if (a.equals("gpsLedPin"))
 				gpsLedPin = Integer.parseInt(b);
