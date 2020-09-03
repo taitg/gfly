@@ -43,21 +43,21 @@ public class DeviceController {
 			redButtonLed = new LED(gpio, "redLed", Config.redButtonLedPin);
 			tone = new Tone(Config.piezoPin, "piezo");
 
-			redButtonLed.flash(1);
+			redButtonLed.flash(2);
 			if (Config.varioAudioOn)
 				tone.setFreq(110);
 
 			sensor = new BMP388(i2cBus);
 			yellowButtonLed = new LED(gpio, "yellowLed", Config.yellowButtonLedPin);
 
-			yellowButtonLed.flash(1);
+			yellowButtonLed.flash(2);
 			if (Config.varioAudioOn)
 				tone.setFreq(220);
 
 			gps = new GPS(gpio, Config.gpsLedPin, Config.gpsSwitchPin);
 			greenButtonLed = new LED(gpio, "greenLed", Config.greenButtonLedPin);
 
-			greenButtonLed.flash(1);
+			greenButtonLed.flash(2);
 			if (Config.varioAudioOn)
 				tone.setFreq(440);
 
