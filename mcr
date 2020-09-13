@@ -1,0 +1,1 @@
+./make && ./copy && ./run

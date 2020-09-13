@@ -172,13 +172,35 @@ public class WebServer extends Thread {
     }
 
     private String generateOutput(String request) {
-      // if (request.contains("gps")) {
-      System.out.println("Request \"" + request + "\"");
-      Status status = new Status(controller, track);
-      return Util.toJSON(status);
-      // }
+      if (Config.verbose)
+        System.out.println("Request \"" + request + "\"");
 
-      // return "";
+      if (request.startsWith("status")) {
+        Status status = new Status(controller, track);
+        return Util.toJSON(status);
+      }
+
+      else if (request.startsWith("toggleaudio")) {
+        Config.varioAudioOn = !Config.varioAudioOn;
+        return "ok";
+      }
+
+      else if (request.startsWith("toggletrack")) {
+        track.toggle();
+        return "ok";
+      }
+
+      else if (request.startsWith("powerdown")) {
+        Gfly.powerDown();
+        return "ok";
+      }
+
+      else if (request.startsWith("reboot")) {
+        Gfly.reboot();
+        return "ok";
+      }
+
+      return "";
     }
   }
 }

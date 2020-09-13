@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo cp Gfly.jar /etc/gfly/Gfly.jar
+sudo cp Gfly.jar /etc/gfly/Gfly.jar && echo "Copied Gfly.jar"
 sudo rm -rf /etc/gfly/build
 sudo mkdir /etc/gfly/build
-sudo cp -r build/* /etc/gfly/build/
+sudo cp -r build/* /etc/gfly/build/ && echo "Copied build folder"

@@ -13,6 +13,8 @@ public class Track {
 	private String filename;
 	private GPSData initial;
 
+	private double distance;
+	private double maxDistance;
 	private double maxSpeed;
 	private double maxAltitude;
 	private double minAltitude;
@@ -27,6 +29,8 @@ public class Track {
 			running = false;
 			lastGPSTime = 0;
 			initial = controller.getGPSData();
+			distance = 0;
+			maxDistance = 0;
 			maxSpeed = 0;
 			maxAltitude = 0;
 			maxPressureAltitude = 0;
@@ -82,6 +86,14 @@ public class Track {
 		return initial;
 	}
 
+	public double getDistance() {
+		return distance;
+	}
+
+	public double getMaxDistance() {
+		return maxDistance;
+	}
+
 	public double getMaxSpeed() {
 		return maxSpeed;
 	}
@@ -135,28 +147,34 @@ public class Track {
 			shutdown = false;
 		}
 
-		private void updateStats() {
-			GPSData gps = controller.getGPSData();
-			PTAData pta = controller.getPTA();
-
+		private void updateStats(GPSData gps, PTAData pta) {
 			double speed = gps.getSpeedKMH();
 			double altitude = gps.getAltitude();
 			double pressureAltitude = pta.getAltitude();
 			double vSpeed = controller.getAltitudeChange();
 
+			if (gps != null && initial != null && gps.isValid() && gps.isComplete() && initial.isValid()
+					&& initial.isComplete()) {
+				distance = Util.vincentyDistance(initial.getLatitude(), initial.getLongitude(), gps.getLatitude(),
+						gps.getLongitude());
+			} else {
+				distance = 0;
+			}
+			if (distance > maxDistance)
+				maxDistance = distance;
 			if (speed > maxSpeed)
 				maxSpeed = speed;
-			if (altitude > maxAltitude)
+			if (maxAltitude == 0 || altitude > maxAltitude)
 				maxAltitude = altitude;
-			if (altitude < minAltitude)
+			if (minAltitude == 0 || altitude < minAltitude)
 				minAltitude = altitude;
-			if (pressureAltitude > maxPressureAltitude)
+			if (maxPressureAltitude == 0 || pressureAltitude > maxPressureAltitude)
 				maxPressureAltitude = pressureAltitude;
-			if (pressureAltitude < minPressureAltitude)
+			if (minPressureAltitude == 0 || pressureAltitude < minPressureAltitude)
 				minPressureAltitude = pressureAltitude;
-			if (vSpeed > maxClimb)
+			if (maxClimb == 0 || vSpeed > maxClimb)
 				maxClimb = vSpeed;
-			if (vSpeed < maxSink)
+			if (maxSink == 0 || vSpeed < maxSink)
 				maxSink = vSpeed;
 		}
 
@@ -166,26 +184,31 @@ public class Track {
 		@Override
 		public void run() {
 			while (!shutdown) {
-				if (running && System.currentTimeMillis() - lastGPSTime > 1000) {
+				if (System.currentTimeMillis() - lastGPSTime > 1000) {
 					GPSData gps = controller.getGPSData();
+					PTAData pta = controller.getPTA();
 
 					if (gps != null && gps.isValid()) {
 						if (!initial.isValid() || !initial.isComplete())
 							initial = gps;
 
-						String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(),
-								gps.getAltitude(), gps.getSpeed(), gps.getTrackingAngle());
+						if (running) {
+							String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(),
+									gps.getAltitude(), gps.getSpeed(), gps.getTrackingAngle());
 
-						try {
-							Files.write(Paths.get(filename), gpsStr.getBytes(StandardCharsets.UTF_8),
-									Files.exists(Paths.get(filename)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
-						} catch (Exception e) {
-							Errors.handleException(e, "cannot write GPS file");
+							try {
+								Files.write(Paths.get(filename), gpsStr.getBytes(StandardCharsets.UTF_8),
+										Files.exists(Paths.get(filename)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+							} catch (Exception e) {
+								Errors.handleException(e, "cannot write GPS file");
+							}
+							System.out.print(gpsStr);
 						}
-						System.out.print(gpsStr);
 					}
 
 					lastGPSTime = System.currentTimeMillis();
+
+					updateStats(gps, pta);
 				}
 				Util.delay(100);
 			}

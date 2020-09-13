@@ -1,5 +1,6 @@
 public class Status {
 
+  private boolean gpsHasFix;
   private boolean varioAudioOn;
   private boolean isTrackRunning;
 
@@ -10,6 +11,7 @@ public class Status {
   private double initialLongitude;
   private double initialHeading;
   private double initialSpeed;
+  private double distance;
 
   private String date;
   private String time;
@@ -31,6 +33,7 @@ public class Status {
   private double minPressureAltitude;
   private double maxClimb;
   private double maxSink;
+  private double maxDistance;
 
   public Status(DeviceController controller, Track track) {
     varioAudioOn = Config.varioAudioOn;
@@ -45,6 +48,7 @@ public class Status {
       longitude = gps.getLongitude();
       heading = gps.getTrackingAngle();
       speed = gps.getSpeedKMH();
+      gpsHasFix = gps.isValid() && gps.isComplete();
     } else {
       date = "";
       time = "";
@@ -53,6 +57,7 @@ public class Status {
       longitude = 0;
       heading = 0;
       speed = 0;
+      gpsHasFix = false;
     }
 
     GPSData initial = track.getInitialGPS();
@@ -87,6 +92,8 @@ public class Status {
       temperature = 0;
     }
 
+    distance = track.getDistance();
+    maxDistance = track.getMaxDistance();
     maxSpeed = track.getMaxSpeed();
     maxAltitude = track.getMaxAltitude();
     minAltitude = track.getMinAltitude();

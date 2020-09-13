@@ -126,10 +126,11 @@ public class Tone {
 						boolean first = true;
 						while (System.currentTimeMillis() < pulseEndTime) {
 							play(freq);
-							if (first) {
-								freq = (int) queue.get(queue.size() - 1);
-								queue.remove(queue.size() - 1);
-							} else if (queue.size() > 1) {
+							// if (first) {
+							// 	freq = (int) queue.get(queue.size() - 1);
+							// 	queue.remove(queue.size() - 1);
+							// } else 
+							if (queue.size() > 0) {
 								freq += (int) queue.get(queue.size() - 1);
 								freq /= 2;
 								queue.remove(queue.size() - 1);

@@ -14,6 +14,26 @@ public class Gfly {
 	private static WebServer server;
 	private static Track track;
 
+	public static void powerDown() {
+		try {
+			shutDown();
+			Process p = Runtime.getRuntime().exec("sudo shutdown -h now");
+			p.waitFor();
+		} catch (Exception e) {
+			Errors.handleException(e, "could not shut down!");
+		}
+	}
+
+	public static void reboot() {
+		try {
+			shutDown();
+			Process p = Runtime.getRuntime().exec("sudo reboot now");
+			p.waitFor();
+		} catch (Exception e) {
+			Errors.handleException(e, "could not shut down!");
+		}
+	}
+
 	private static void handleDevCommand() {
 		if (!acceptingCommands)
 			return;
@@ -138,16 +158,6 @@ public class Gfly {
 		Util.delay(500);
 		server.shutdown();
 		controller.shutdown();
-	}
-
-	private static void powerDown() {
-		try {
-			shutDown();
-			Process p = Runtime.getRuntime().exec("sudo shutdown -h now");
-			p.waitFor();
-		} catch (Exception e) {
-			Errors.handleException(e, "could not shut down!");
-		}
 	}
 
 	private static void init() {
