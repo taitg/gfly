@@ -25,6 +25,8 @@ public class DeviceController {
 	private Switch greenButton;
 	private LED greenButtonLed;
 
+	private long initialSystemTime;
+
 	/**
 	 * Initialize components and I/O
 	 * 
@@ -88,6 +90,8 @@ public class DeviceController {
 
 			if (Config.verbose)
 				System.out.println("Done initializing components");
+
+			initialSystemTime = System.currentTimeMillis();
 
 			return true;
 		} catch (Exception e) {
@@ -178,6 +182,10 @@ public class DeviceController {
 
 	public BMP388 getSensor() {
 		return sensor;
+	}
+
+	public long getInitialTime() {
+		return initialSystemTime;
 	}
 
 	public void testComponent(String... args) {

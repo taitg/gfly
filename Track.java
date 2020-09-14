@@ -2,6 +2,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 public class Track {
 
@@ -9,10 +10,18 @@ public class Track {
 	private DeviceController controller;
 
 	private boolean running;
-	private long lastGPSTime;
 	private String filename;
-	private GPSData initial;
+	private GPSData initialGPS;
+	private GPSData lastDistancePoint;
+	private ArrayList<GPSData> gpsList;
 
+	private long lastGPSTime;
+	private long lastStatsTime;
+	private long lastDistanceTime;
+	private long trackStartTime;
+	private long trackStopTime;
+
+	private double distanceTravelled;
 	private double distance;
 	private double maxDistance;
 	private double maxSpeed;
@@ -26,9 +35,15 @@ public class Track {
 	public Track(DeviceController controller) {
 		if (controller != null) {
 			this.controller = controller;
+			initialGPS = controller.getGPSData();
+			lastDistancePoint = null;
 			running = false;
 			lastGPSTime = 0;
-			initial = controller.getGPSData();
+			lastStatsTime = 0;
+			lastDistanceTime = 0;
+			trackStartTime = 0;
+			trackStopTime = 0;
+			distanceTravelled = 0;
 			distance = 0;
 			maxDistance = 0;
 			maxSpeed = 0;
@@ -42,7 +57,7 @@ public class Track {
 			if (Config.verbose)
 				System.out.println("Track: ready");
 		} else if (Config.verbose)
-			System.out.println("Track: failed to initialize");
+			System.out.println("Track: failed to initialGPSize");
 	}
 
 	/**
@@ -61,6 +76,7 @@ public class Track {
 			Files.write(Paths.get(filename), header.getBytes(StandardCharsets.UTF_8),
 					Files.exists(Paths.get(filename)) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
 
+			trackStartTime = System.currentTimeMillis();
 			running = true;
 		} catch (Exception e) {
 			Errors.handleException(e, "Failed to start tracking");
@@ -68,6 +84,7 @@ public class Track {
 	}
 
 	public void stop() {
+		trackStopTime = System.currentTimeMillis();
 		running = false;
 	}
 
@@ -83,7 +100,7 @@ public class Track {
 	}
 
 	public GPSData getInitialGPS() {
-		return initial;
+		return initialGPS;
 	}
 
 	public double getDistance() {
@@ -122,6 +139,73 @@ public class Track {
 		return maxSink;
 	}
 
+	public long getStartTime() {
+		return trackStartTime;
+	}
+
+	public long getStopTime() {
+		return trackStopTime;
+	}
+
+	public void resetOrigin() {
+		distance = 0;
+		maxDistance = 0;
+		distanceTravelled = 0;
+		initialGPS = controller.getGPSData();
+	}
+
+	public void resetStats() {
+		distanceTravelled = 0;
+		maxDistance = 0;
+		maxSpeed = 0;
+		maxAltitude = 0;
+		maxPressureAltitude = 0;
+		maxClimb = 0;
+		maxSink = 0;
+	}
+
+	private void updateStats(GPSData gps, PTAData pta) {
+		if (gps != null) {
+			double speed = gps.getSpeedKMH();
+			double altitude = gps.getAltitude();
+
+			if (gps.isValid()) {
+				if (initialGPS != null && initialGPS.isValid()) {
+					distance = Util.vincentyDistance(initialGPS.getLatitude(), initialGPS.getLongitude(), gps.getLatitude(),
+							gps.getLongitude());
+				} else {
+					distance = 0;
+				}
+
+				if (distance > maxDistance)
+					maxDistance = distance;
+				if (speed > maxSpeed)
+					maxSpeed = speed;
+
+				if (gps.isComplete()) {
+					if (maxAltitude == 0 || altitude > maxAltitude)
+						maxAltitude = altitude;
+					if (minAltitude == 0 || altitude < minAltitude)
+						minAltitude = altitude;
+				}
+			}
+		}
+
+		if (pta != null) {
+			double pressureAltitude = pta.getAltitude();
+			double vSpeed = controller.getAltitudeChange();
+
+			if (maxPressureAltitude == 0 || pressureAltitude > maxPressureAltitude)
+				maxPressureAltitude = pressureAltitude;
+			if (minPressureAltitude == 0 || pressureAltitude < minPressureAltitude)
+				minPressureAltitude = pressureAltitude;
+			if (maxClimb == 0 || vSpeed > maxClimb)
+				maxClimb = vSpeed;
+			if (maxSink == 0 || vSpeed < maxSink)
+				maxSink = vSpeed;
+		}
+	}
+
 	/**
 	 * Start worker thread
 	 */
@@ -147,51 +231,29 @@ public class Track {
 			shutdown = false;
 		}
 
-		private void updateStats(GPSData gps, PTAData pta) {
-			double speed = gps.getSpeedKMH();
-			double altitude = gps.getAltitude();
-			double pressureAltitude = pta.getAltitude();
-			double vSpeed = controller.getAltitudeChange();
-
-			if (gps != null && initial != null && gps.isValid() && gps.isComplete() && initial.isValid()
-					&& initial.isComplete()) {
-				distance = Util.vincentyDistance(initial.getLatitude(), initial.getLongitude(), gps.getLatitude(),
-						gps.getLongitude());
-			} else {
-				distance = 0;
-			}
-			if (distance > maxDistance)
-				maxDistance = distance;
-			if (speed > maxSpeed)
-				maxSpeed = speed;
-			if (maxAltitude == 0 || altitude > maxAltitude)
-				maxAltitude = altitude;
-			if (minAltitude == 0 || altitude < minAltitude)
-				minAltitude = altitude;
-			if (maxPressureAltitude == 0 || pressureAltitude > maxPressureAltitude)
-				maxPressureAltitude = pressureAltitude;
-			if (minPressureAltitude == 0 || pressureAltitude < minPressureAltitude)
-				minPressureAltitude = pressureAltitude;
-			if (maxClimb == 0 || vSpeed > maxClimb)
-				maxClimb = vSpeed;
-			if (maxSink == 0 || vSpeed < maxSink)
-				maxSink = vSpeed;
-		}
-
 		/**
 		 * Main worker loop
 		 */
 		@Override
 		public void run() {
 			while (!shutdown) {
+				GPSData gps = null;
+				PTAData pta = null;
+
+				// update GPS every 1s
 				if (System.currentTimeMillis() - lastGPSTime > 1000) {
-					GPSData gps = controller.getGPSData();
-					PTAData pta = controller.getPTA();
+					gps = controller.getGPSData();
+					// PTAData pta = controller.getPTA();
 
 					if (gps != null && gps.isValid()) {
-						if (!initial.isValid() || !initial.isComplete())
-							initial = gps;
+						// if initialGPS GPS data is not valid, overwrite with new data
+						if (!initialGPS.isValid() || !initialGPS.isComplete())
+							initialGPS = gps;
 
+						// add GPS data to list
+						// gpsList.add(gps);
+
+						// save GPS data to file
 						if (running) {
 							String gpsStr = String.format("T,%f,%f,%f,%f,%f\n", gps.getLatitude(), gps.getLongitude(),
 									gps.getAltitude(), gps.getSpeed(), gps.getTrackingAngle());
@@ -207,9 +269,37 @@ public class Track {
 					}
 
 					lastGPSTime = System.currentTimeMillis();
+				}
+
+				// update stats every 0.2s
+				if (System.currentTimeMillis() - lastStatsTime > 200) {
+					if (gps == null)
+						gps = controller.getGPSData();
+					if (pta == null)
+						pta = controller.getPTA();
 
 					updateStats(gps, pta);
+					lastStatsTime = System.currentTimeMillis();
 				}
+
+				// update distance travelled every 10s
+				if (System.currentTimeMillis() - lastDistanceTime > 10000) {
+					if (gps == null)
+						gps = controller.getGPSData();
+					// if (pta == null) pta = controller.getPTA();
+
+					if (gps.isValid()) {
+						GPSData lastPoint = lastDistancePoint == null ? initialGPS : lastDistancePoint;
+						double d = Util.vincentyDistance(lastPoint.getLatitude(), lastPoint.getLongitude(), gps.getLatitude(),
+								gps.getLongitude());
+						if (d > 0.1) {
+							distanceTravelled += d;
+							lastDistancePoint = gps;
+						}
+						lastDistanceTime = System.currentTimeMillis();
+					}
+				}
+
 				Util.delay(100);
 			}
 		}

@@ -4,6 +4,11 @@ public class Status {
   private boolean varioAudioOn;
   private boolean isTrackRunning;
 
+  private long initialSystemTime;
+  private long currentSystemTime;
+  private long trackStartTime;
+  private long trackStopTime;
+
   private String initialDate;
   private String initialTime;
   private double initialAltitude;
@@ -38,6 +43,11 @@ public class Status {
   public Status(DeviceController controller, Track track) {
     varioAudioOn = Config.varioAudioOn;
     isTrackRunning = track.isRunning();
+
+    initialSystemTime = controller.getInitialTime();
+    currentSystemTime = System.currentTimeMillis();
+    trackStartTime = track.getStartTime();
+    trackStopTime = track.getStopTime();
 
     GPSData gps = controller.getGPSData();
     if (gps != null) {

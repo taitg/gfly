@@ -1,8 +1,15 @@
 import React from 'react';
 import axios from 'axios';
-import { Menu } from 'antd';
 import { get } from 'lodash';
 import styled from 'styled-components';
+import { Alert, Menu, Spin } from 'antd';
+import { IoMdSpeedometer } from 'react-icons/io';
+import { GiPathDistance } from 'react-icons/gi';
+import { AiFillSetting } from 'react-icons/ai';
+import { FaInfoCircle } from 'react-icons/fa';
+import { ImStatsBars } from 'react-icons/im';
+
+import { headingToString } from './util';
 
 const serverURL = 'http://192.168.4.1:8080';
 
@@ -28,7 +35,7 @@ class App extends React.Component {
   }
 
   onMenuClick(e) {
-    const pages = ['current', 'maxmin', 'track'];
+    const pages = ['current', 'maxmin', 'track', 'info'];
     if (pages.includes(e.key))
       this.setState({ menuSelection: e.key });
   }
@@ -37,10 +44,18 @@ class App extends React.Component {
     const { status, menuSelection } = this.state;
     return (
       <Menu theme="dark" mode="horizontal" selectedKeys={[menuSelection]} onClick={e => this.onMenuClick(e)}>
-        <Menu.Item key="current">Current</Menu.Item>
-        <Menu.Item key="maxmin">Max/Min</Menu.Item>
-        <Menu.Item key="track">Track</Menu.Item>
-        <Menu.SubMenu key="control" title="Control">
+        <Menu.Item key="current"><IconWrapper><IoMdSpeedometer /></IconWrapper></Menu.Item>
+        <Menu.Item key="maxmin"><IconWrapper><ImStatsBars /></IconWrapper></Menu.Item>
+        <Menu.Item key="track"><IconWrapper><GiPathDistance /></IconWrapper></Menu.Item>
+        <Menu.Item key="info"><IconWrapper><FaInfoCircle /></IconWrapper></Menu.Item>
+        <Menu.SubMenu key="control" title={<IconWrapper><AiFillSetting /></IconWrapper>}>
+          <Menu.Item onClick={() => axios.get(`${serverURL}/resetstats`)}>
+            Reset stats
+          </Menu.Item>
+          <Menu.Item onClick={() => axios.get(`${serverURL}/resetorigin`)}>
+            Reset origin point
+          </Menu.Item>
+          <Menu.Divider />
           <Menu.Item onClick={() => axios.get(`${serverURL}/toggletrack`)}>
             Turn tracking {status && status.isTrackRunning ? 'off' : 'on'}
           </Menu.Item>
@@ -48,8 +63,12 @@ class App extends React.Component {
             Turn audio {status && status.varioAudioOn ? 'off' : 'on'}
           </Menu.Item>
           <Menu.Divider />
-          <Menu.Item>Restart</Menu.Item>
-          <Menu.Item>Shut down</Menu.Item>
+          <Menu.Item onClick={() => axios.get(`${serverURL}/reboot`)}>
+            Restart
+          </Menu.Item>
+          <Menu.Item onClick={() => axios.get(`${serverURL}/powerdown`)}>
+            Shut down
+          </Menu.Item>
         </Menu.SubMenu>
       </Menu>
     );
@@ -57,64 +76,56 @@ class App extends React.Component {
 
   renderCurrent() {
     const { status } = this.state;
+    const hasFix = status.gpsHasFix;
     return (
       <DataList>
-        <DataItem>
-          <DataNumber style={{ color: !status.gpsHasFix ? 'dimgrey' : ''}}>
-            {get(status, 'altitude', 0).toFixed(1)} m
-          </DataNumber>
-          <DataNumber>{get(status, 'pressureAltitude', 0).toFixed(1)} m</DataNumber>
-          <DataName>Altitude</DataName>
-        </DataItem>
         <DataItem>
           <div />
           <DataNumber style={{ color: get(status, 'verticalSpeed', 0) < 0 ? 'red' : 'limegreen' }}>
             {get(status, 'verticalSpeed', 0).toFixed(2)} m/s
           </DataNumber>
-          <DataName>Vert Speed</DataName>
+          <DataName>Vertical Speed</DataName>
         </DataItem>
         <DataItem>
-          <DataNumber style={{ color: !status.gpsHasFix ? 'dimgrey' : ''}}>
-            {get(status, 'distance', 0).toFixed(1)} km
+          <DataNumber>{get(status, 'pressureAltitude', 0).toFixed(1)} m</DataNumber>
+          <DataNumber style={{ color: !hasFix ? 'dimgrey' : ''}}>
+            {!hasFix ? '-' : `${get(status, 'altitude', 0).toFixed(1)} m`}
           </DataNumber>
-          <DataName>Distance</DataName>
+          <DataName>Altitude</DataName>
         </DataItem>
         <DataItem>
-          <DataNumber style={{ color: !status.gpsHasFix ? 'dimgrey' : ''}}>
-            {get(status, 'speed', 0).toFixed(1)} km/h
+          <DataNumber style={{ color: !hasFix ? 'dimgrey' : ''}}>
+            {!hasFix ? '-' : `${get(status, 'speed', 0).toFixed(1)} km/h`}
           </DataNumber>
           <DataName>Speed</DataName>
         </DataItem>
         <DataItem>
-          <a
-            href={status.gpsHasFix ? `https://www.google.com/maps/place/${status.latitude}${status.longitude}` : '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <DataNumber style={{ color: !status.gpsHasFix ? 'dimgrey' : ''}}>
-              {get(status, 'latitude', 0).toFixed(4)}
-            </DataNumber>
-          </a>
-          <DataName>Latitude</DataName>
+          <DataNumber style={{ color: !hasFix ? 'dimgrey' : ''}}>
+            {!hasFix ? '-' : headingToString(status.heading)}
+          </DataNumber>
+          <DataName>Direction</DataName>
         </DataItem>
         <DataItem>
-          <a
-            href={status.gpsHasFix ? `https://www.google.com/maps/place/${status.latitude}${status.longitude}` : '#'}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <DataNumber style={{ color: !status.gpsHasFix ? 'dimgrey' : ''}}>
-              {get(status, 'longitude', 0).toFixed(4)}
-            </DataNumber>
-          </a>
-          <DataName>Longitude</DataName>
+          <DataNumber style={{ color: !hasFix ? 'dimgrey' : ''}}>
+            {!hasFix ? '-' : `${get(status, 'distance', 0).toFixed(1)} km`}
+          </DataNumber>
+          <DataName>Distance</DataName>
         </DataItem>
         <DataItem>
           <DataNumber>{get(status, 'temperature', 0).toFixed(1)} C</DataNumber>
-          <DataName>Temp</DataName>
+          <DataName>Temperature</DataName>
         </DataItem>
         <DataItem>
-
+          <DataNumber style={{ color: !hasFix ? 'dimgrey' : ''}}>
+            {!hasFix ? '-' : get(status, 'latitude', 0).toFixed(4)}
+          </DataNumber>
+          <DataName>Latitude</DataName>
+        </DataItem>
+        <DataItem>
+          <DataNumber style={{ color: !hasFix ? 'dimgrey' : ''}}>
+            {!hasFix ? '-' : get(status, 'longitude', 0).toFixed(4)}
+          </DataNumber>
+          <DataName>Longitude</DataName>
         </DataItem>
       </DataList>
     );
@@ -125,13 +136,13 @@ class App extends React.Component {
     return (
       <DataList>
         <DataItem>
-          <DataNumber>{get(status, 'maxAltitude', 0).toFixed(1)} m</DataNumber>
           <DataNumber>{get(status, 'maxPressureAltitude', 0).toFixed(1)} m</DataNumber>
+          <DataNumber>{get(status, 'maxAltitude', 0).toFixed(1)} m</DataNumber>
           <DataName>Max Altitude</DataName>
         </DataItem>
         <DataItem>
-          <DataNumber>{get(status, 'minAltitude', 0).toFixed(1)} m</DataNumber>
           <DataNumber>{get(status, 'minPressureAltitude', 0).toFixed(1)} m</DataNumber>
+          <DataNumber>{get(status, 'minAltitude', 0).toFixed(1)} m</DataNumber>
           <DataName>Min Altitude</DataName>
         </DataItem>
         <DataItem>
@@ -154,6 +165,11 @@ class App extends React.Component {
           <DataNumber>{get(status, 'maxSpeed', 0).toFixed(1)} km/h</DataNumber>
           <DataName>Max Speed</DataName>
         </DataItem>
+        <DataItem>
+          <DataNumber>{get(status, 'distanceTravelled', 0).toFixed(1)} km</DataNumber>
+          <DataName>Dist Travelled</DataName>
+        </DataItem>
+        <DataItem></DataItem>
       </DataList>
     );
   }
@@ -164,10 +180,13 @@ class App extends React.Component {
       <div>
         {this.renderMenu()}
         <div style={{ padding: '0em' }}>
-          {status ? <React.Fragment>
-            {menuSelection === 'current' && this.renderCurrent()}
-            {menuSelection === 'maxmin' && this.renderMaxMin()}
-          </React.Fragment> : 'loading'}
+          {status ?
+            <React.Fragment>
+              {!status.gpsHasFix && <Alert type="error" message="No GPS fix" showIcon />}
+              {menuSelection === 'current' && this.renderCurrent()}
+              {menuSelection === 'maxmin' && this.renderMaxMin()}
+            </React.Fragment>
+          : <SpinWrapper><Spin size="large" /></SpinWrapper>}
         </div>
       </div>
     );
@@ -200,4 +219,22 @@ const DataName = styled.div`
 const DataNumber = styled.div`
   font-size: 1.5em;
   color: gold;
+`;
+
+const SpinWrapper = styled.div`
+  width: 100%;
+  height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
+const IconWrapper = styled.div`
+  /* display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: flex-start;
+  flex-grow: 1; */
+  padding-top: 0.2em;
+  font-size: 2.2em;
 `;

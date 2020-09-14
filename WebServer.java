@@ -180,6 +180,16 @@ public class WebServer extends Thread {
         return Util.toJSON(status);
       }
 
+      else if (request.startsWith("resetstats")) {
+        track.resetStats();
+        return "ok";
+      }
+
+      else if (request.startsWith("resetorigin")) {
+        track.resetOrigin();
+        return "ok";
+      }
+
       else if (request.startsWith("toggleaudio")) {
         Config.varioAudioOn = !Config.varioAudioOn;
         return "ok";
